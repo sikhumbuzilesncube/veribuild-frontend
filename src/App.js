@@ -26,6 +26,8 @@ function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState('architect');
+  const [regCity, setRegCity] = useState('');  // NEW
+const [regRegNumber, setRegRegNumber] = useState('');  // NEW
 
   // Submission state
   const [newProject, setNewProject] = useState({
@@ -63,14 +65,18 @@ function App() {
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/auth/register`, {
-        email: regEmail,
-        password: regPassword,
-        full_name: regFullName,
-        role: regRole
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const response = await axios.post(`${API_URL}/auth/register`, {
+      email: regEmail,
+      password: regPassword,
+      full_name: regFullName,
+      role: regRole,
+      city: regCity,  // NEW
+      registration_number: regRegNumber  // NEW
+    });
+    // ... rest of the function remains the same
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
