@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// API URL (your live backend)
+// API URL (your live backend on Render)
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 
 function App() {
@@ -26,8 +26,8 @@ function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState('architect');
-  const [regCity, setRegCity] = useState('');  // NEW
-const [regRegNumber, setRegRegNumber] = useState('');  // NEW
+  const [regCity, setRegCity] = useState(''); // NEW: City/Council
+  const [regRegNumber, setRegRegNumber] = useState(''); // NEW: Registration Number
 
   // Submission state
   const [newProject, setNewProject] = useState({
@@ -65,18 +65,16 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
   };
 
   const handleRegister = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  try {
-    const response = await axios.post(`${API_URL}/auth/register`, {
-      email: regEmail,
-      password: regPassword,
-      full_name: regFullName,
-      role: regRole,
-      city: regCity,  // NEW
-      registration_number: regRegNumber  // NEW
-    });
-    // ... rest of the function remains the same
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        email: regEmail,
+        password: regPassword,
+        full_name: regFullName,
+        role: regRole,
+        city: regCity, // NEW
+        registration_number: regRegNumber // NEW
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -168,7 +166,6 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
 
   useEffect(() => {
     if (token) {
-      // Try to fetch user data (optional)
       setView('dashboard');
       fetchSubmissions();
     }
@@ -201,6 +198,7 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
               <tr style={{ backgroundColor: '#f0f0f0' }}>
                 <th style={{ padding: '10px', textAlign: 'left' }}>#</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>Architect</th>
+                <th style={{ padding: '10px', textAlign: 'left' }}>City</th>
                 <th style={{ padding: '10px', textAlign: 'left' }}>Approved</th>
               </tr>
             </thead>
@@ -209,6 +207,7 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
                 <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '10px' }}>{index + 1}</td>
                   <td style={{ padding: '10px' }}>{item.architect_name}</td>
+                  <td style={{ padding: '10px' }}>{item.city || 'N/A'}</td>
                   <td style={{ padding: '10px' }}>{item.approved_count}</td>
                 </tr>
               ))}
@@ -348,7 +347,7 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
             required
           />
         </div>
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px' }}>Role</label>
           <select
             value={regRole}
@@ -359,6 +358,42 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
             <option value="council_officer">Council Officer</option>
           </select>
         </div>
+
+        {/* NEW: City/Council Dropdown */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>City / Council</label>
+          <select
+            value={regCity}
+            onChange={(e) => setRegCity(e.target.value)}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+            required
+          >
+            <option value="">Select your city...</option>
+            <option value="Harare">Harare</option>
+            <option value="Bulawayo">Bulawayo</option>
+            <option value="Mutare">Mutare</option>
+            <option value="Gweru">Gweru</option>
+            <option value="Kwekwe">Kwekwe</option>
+            <option value="Masvingo">Masvingo</option>
+            <option value="Marondera">Marondera</option>
+            <option value="Chinhoyi">Chinhoyi</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        {/* NEW: Architect Registration Number */}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Architect Registration Number</label>
+          <input
+            type="text"
+            placeholder="e.g., ARCH-2024-001"
+            value={regRegNumber}
+            onChange={(e) => setRegRegNumber(e.target.value)}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+          />
+          <small style={{ color: '#666' }}>Your official registration number from the Architects Council.</small>
+        </div>
+
         <button
           type="submit"
           disabled={loading}
@@ -422,6 +457,8 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
 
         <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
           <p><strong>Role:</strong> {user.role}</p>
+          <p><strong>City:</strong> {user.city || 'Not specified'}</p>
+          <p><strong>Registration Number:</strong> {user.registration_number || 'Not specified'}</p>
           <p><strong>Company:</strong> {user.company_name || 'Not specified'}</p>
         </div>
 
@@ -499,6 +536,7 @@ const [regRegNumber, setRegRegNumber] = useState('');  // NEW
                   onChange={(e) => setNewProject({ ...newProject, file_url: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
                 />
+                <small style={{ color: '#666' }}>For MVP, paste a link to your plan PDF (Google Drive or Dropbox).</small>
               </div>
               <button
                 type="submit"
