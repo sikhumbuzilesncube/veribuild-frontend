@@ -1,12 +1,12 @@
 // ============================================
-// VERIBUILD FRONTEND - MAIN APP
+// VERIBUILD FRONTEND - PROFESSIONAL VERSION
 // Deploy to Vercel
 // ============================================
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// API URL (your live backend on Render)
+// API URL
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 
 function App() {
@@ -26,14 +26,14 @@ function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState('architect');
-  const [regCity, setRegCity] = useState(''); // NEW: City/Council
-  const [regRegNumber, setRegRegNumber] = useState(''); // NEW: Registration Number
+  const [regCouncil, setRegCouncil] = useState(''); // CHANGED: council instead of city
+  const [regRegNumber, setRegRegNumber] = useState('');
 
   // Submission state
   const [newProject, setNewProject] = useState({
     project_name: '',
     project_address: '',
-    city: '',
+    council: '',
     land_size: '',
     usage_type: 'residential',
     declared_scale: '',
@@ -73,8 +73,8 @@ function App() {
         password: regPassword,
         full_name: regFullName,
         role: regRole,
-        city: regCity, // NEW
-        registration_number: regRegNumber // NEW
+        city: regCouncil, // Store council as city for now
+        registration_number: regRegNumber
       });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -122,7 +122,7 @@ function App() {
       await axios.post(`${API_URL}/submissions`, {
         project_name: newProject.project_name,
         project_address: newProject.project_address,
-        city: newProject.city,
+        city: newProject.council,
         land_size: parseFloat(newProject.land_size),
         usage_type: newProject.usage_type,
         declared_scale: newProject.declared_scale,
@@ -134,7 +134,7 @@ function App() {
       setNewProject({
         project_name: '',
         project_address: '',
-        city: '',
+        council: '',
         land_size: '',
         usage_type: 'residential',
         declared_scale: '',
@@ -173,17 +173,105 @@ function App() {
   }, [token]);
 
   // ============================================
-  // RENDER FUNCTIONS
+  // HOME PAGE (IMPROVED)
   // ============================================
 
   const renderHome = () => (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }}>
-        🏗️ VeriBuild
-      </h1>
-      <p style={{ fontSize: '18px', color: '#666', marginBottom: '30px' }}>
-        AI-powered building approvals. Built for trust.
-      </p>
+    <div style={{ 
+      padding: '20px', 
+      maxWidth: '900px', 
+      margin: '0 auto',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      {/* Header */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '40px',
+        borderBottom: '1px solid #e0e0e0',
+        paddingBottom: '20px'
+      }}>
+        <div>
+          <h1 style={{ fontSize: '36px', fontWeight: 'bold', margin: 0 }}>
+            🏗️ VeriBuild
+          </h1>
+          <p style={{ color: '#666', margin: '5px 0 0 0' }}>
+            AI-powered building approval platform
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button
+            onClick={() => setView('login')}
+            style={{
+              padding: '10px 25px',
+              backgroundColor: '#1A2B5E',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            Login
+          </button>
+          <button
+            onClick={() => setView('register')}
+            style={{
+              padding: '10px 25px',
+              backgroundColor: '#00A896',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            Register
+          </button>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <div style={{ 
+        backgroundColor: '#f0f4f8', 
+        padding: '40px', 
+        borderRadius: '12px', 
+        marginBottom: '40px',
+        textAlign: 'center'
+      }}>
+        <h2 style={{ fontSize: '28px', marginBottom: '10px' }}>
+          Streamline Your Building Approvals
+        </h2>
+        <p style={{ fontSize: '18px', color: '#333', maxWidth: '600px', margin: '0 auto' }}>
+          VeriBuild connects architects, councils, and the public to make the approval process faster, transparent, and more efficient.
+        </p>
+      </div>
+
+      {/* Features Grid */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+        gap: '20px', 
+        marginBottom: '40px'
+      }}>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3 style={{ marginTop: 0 }}>📄 Submit Plans</h3>
+          <p style={{ color: '#666', fontSize: '14px' }}>Architects submit building plans digitally with a single click.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3 style={{ marginTop: 0 }}>⚡ Fast Approvals</h3>
+          <p style={{ color: '#666', fontSize: '14px' }}>Councils review, comment, and approve plans in record time.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3 style={{ marginTop: 0 }}>🏆 Public Leaderboard</h3>
+          <p style={{ color: '#666', fontSize: '14px' }}>See which architects have the best approval track record.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3 style={{ marginTop: 0 }}>🔍 Plan Tracking</h3>
+          <p style={{ color: '#666', fontSize: '14px' }}>Real-time updates on the progress of your submissions.</p>
+        </div>
+      </div>
 
       {/* Leaderboard */}
       <div style={{ marginBottom: '40px' }}>
@@ -196,19 +284,19 @@ function App() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th style={{ padding: '10px', textAlign: 'left' }}>#</th>
-                <th style={{ padding: '10px', textAlign: 'left' }}>Architect</th>
-                <th style={{ padding: '10px', textAlign: 'left' }}>City</th>
-                <th style={{ padding: '10px', textAlign: 'left' }}>Approved</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>#</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Architect</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Council</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Approved</th>
               </tr>
             </thead>
             <tbody>
               {leaderboard.map((item, index) => (
                 <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '10px' }}>{index + 1}</td>
-                  <td style={{ padding: '10px' }}>{item.architect_name}</td>
-                  <td style={{ padding: '10px' }}>{item.city || 'N/A'}</td>
-                  <td style={{ padding: '10px' }}>{item.approved_count}</td>
+                  <td style={{ padding: '12px' }}>{index + 1}</td>
+                  <td style={{ padding: '12px' }}><strong>{item.architect_name}</strong></td>
+                  <td style={{ padding: '12px' }}>{item.city || 'N/A'}</td>
+                  <td style={{ padding: '12px' }}>{item.approved_count}</td>
                 </tr>
               ))}
             </tbody>
@@ -216,39 +304,22 @@ function App() {
         )}
       </div>
 
-      {/* Login/Register Buttons */}
-      <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setView('login')}
-          style={{
-            padding: '12px 30px',
-            backgroundColor: '#1A2B5E',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => setView('register')}
-          style={{
-            padding: '12px 30px',
-            backgroundColor: '#00A896',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          Register as Architect
-        </button>
+      {/* Footer */}
+      <div style={{ 
+        borderTop: '1px solid #e0e0e0', 
+        paddingTop: '20px', 
+        textAlign: 'center',
+        color: '#999',
+        fontSize: '14px'
+      }}>
+        <p>© 2026 VeriBuild. Built by Gatekeeper AI.</p>
       </div>
     </div>
   );
+
+  // ============================================
+  // LOGIN PAGE
+  // ============================================
 
   const renderLogin = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
@@ -311,10 +382,14 @@ function App() {
     </div>
   );
 
+  // ============================================
+  // REGISTER PAGE (UPDATED)
+  // ============================================
+
   const renderRegister = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
       <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>
-        Register as Architect
+        Register for VeriBuild
       </h2>
       <form onSubmit={handleRegister}>
         <div style={{ marginBottom: '15px' }}>
@@ -351,7 +426,13 @@ function App() {
           <label style={{ display: 'block', marginBottom: '5px' }}>Role</label>
           <select
             value={regRole}
-            onChange={(e) => setRegRole(e.target.value)}
+            onChange={(e) => {
+              setRegRole(e.target.value);
+              // Clear registration number if council officer
+              if (e.target.value === 'council_officer') {
+                setRegRegNumber('');
+              }
+            }}
             style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
           >
             <option value="architect">Architect</option>
@@ -359,40 +440,43 @@ function App() {
           </select>
         </div>
 
-        {/* NEW: City/Council Dropdown */}
+        {/* Council Selection (replaces city) */}
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>City / Council</label>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Council</label>
           <select
-            value={regCity}
-            onChange={(e) => setRegCity(e.target.value)}
+            value={regCouncil}
+            onChange={(e) => setRegCouncil(e.target.value)}
             style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
             required
           >
-            <option value="">Select your city...</option>
-            <option value="Harare">Harare</option>
-            <option value="Bulawayo">Bulawayo</option>
-            <option value="Mutare">Mutare</option>
-            <option value="Gweru">Gweru</option>
-            <option value="Kwekwe">Kwekwe</option>
-            <option value="Masvingo">Masvingo</option>
-            <option value="Marondera">Marondera</option>
-            <option value="Chinhoyi">Chinhoyi</option>
+            <option value="">Select your council...</option>
+            <option value="Harare City Council">Harare City Council</option>
+            <option value="Bulawayo City Council">Bulawayo City Council</option>
+            <option value="Mutare City Council">Mutare City Council</option>
+            <option value="Gweru City Council">Gweru City Council</option>
+            <option value="Kwekwe City Council">Kwekwe City Council</option>
+            <option value="Masvingo City Council">Masvingo City Council</option>
+            <option value="Marondera Municipality">Marondera Municipality</option>
+            <option value="Chinhoyi Municipality">Chinhoyi Municipality</option>
             <option value="Other">Other</option>
           </select>
         </div>
 
-        {/* NEW: Architect Registration Number */}
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Architect Registration Number</label>
-          <input
-            type="text"
-            placeholder="e.g., ARCH-2024-001"
-            value={regRegNumber}
-            onChange={(e) => setRegRegNumber(e.target.value)}
-            style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-          />
-          <small style={{ color: '#666' }}>Your official registration number from the Architects Council.</small>
-        </div>
+        {/* Architect Registration Number (only shown for architects) */}
+        {regRole === 'architect' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px' }}>Architect Registration Number</label>
+            <input
+              type="text"
+              placeholder="e.g., ARCH-2024-001"
+              value={regRegNumber}
+              onChange={(e) => setRegRegNumber(e.target.value)}
+              style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+              required
+            />
+            <small style={{ color: '#666' }}>Your official registration number from the Architects Council.</small>
+          </div>
+        )}
 
         <button
           type="submit"
@@ -429,17 +513,39 @@ function App() {
     </div>
   );
 
+  // ============================================
+  // DASHBOARD (PROFESSIONAL)
+  // ============================================
+
   const renderDashboard = () => {
     if (!user) {
       return <p>Please login first.</p>;
     }
 
     return (
-      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold' }}>
-            👋 Welcome, {user.full_name}
-          </h1>
+      <div style={{ 
+        padding: '20px', 
+        maxWidth: '1000px', 
+        margin: '0 auto',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        {/* Dashboard Header */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '30px',
+          borderBottom: '1px solid #e0e0e0',
+          paddingBottom: '20px'
+        }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '28px' }}>
+              👋 Welcome, {user.full_name}
+            </h1>
+            <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+              {user.role === 'architect' ? 'Architect' : 'Council Officer'} • {user.city || 'Council not set'}
+            </p>
+          </div>
           <button
             onClick={handleLogout}
             style={{
@@ -455,88 +561,181 @@ function App() {
           </button>
         </div>
 
-        <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-          <p><strong>Role:</strong> {user.role}</p>
-          <p><strong>City:</strong> {user.city || 'Not specified'}</p>
-          <p><strong>Registration Number:</strong> {user.registration_number || 'Not specified'}</p>
-          <p><strong>Company:</strong> {user.company_name || 'Not specified'}</p>
+        {/* Stats Cards */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: '15px', 
+          marginBottom: '30px'
+        }}>
+          <div style={{ backgroundColor: '#f0f4f8', padding: '15px', borderRadius: '8px' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Total Submissions</p>
+            <h2 style={{ margin: '5px 0 0 0' }}>{submissions.length}</h2>
+          </div>
+          <div style={{ backgroundColor: '#e8f5e9', padding: '15px', borderRadius: '8px' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Approved</p>
+            <h2 style={{ margin: '5px 0 0 0', color: '#00A896' }}>
+              {submissions.filter(s => s.status === 'approved').length}
+            </h2>
+          </div>
+          <div style={{ backgroundColor: '#fff3e0', padding: '15px', borderRadius: '8px' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Pending Review</p>
+            <h2 style={{ margin: '5px 0 0 0', color: '#f39c12' }}>
+              {submissions.filter(s => s.status === 'submitted' || s.status === 'under_review').length}
+            </h2>
+          </div>
+          <div style={{ backgroundColor: '#fce4ec', padding: '15px', borderRadius: '8px' }}>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Changes Required</p>
+            <h2 style={{ margin: '5px 0 0 0', color: '#e74c3c' }}>
+              {submissions.filter(s => s.status === 'changes_required').length}
+            </h2>
+          </div>
         </div>
 
-        {/* New Submission Form */}
+        {/* Service Navigation (NEW) */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '15px', 
+          flexWrap: 'wrap',
+          marginBottom: '30px',
+          borderBottom: '1px solid #e0e0e0',
+          paddingBottom: '20px'
+        }}>
+          <span style={{ fontWeight: 'bold', marginRight: '10px' }}>Services:</span>
+          <button 
+            onClick={() => alert('Plan Tracking: See the real-time status of all your submissions below.')}
+            style={{
+              padding: '8px 20px',
+              backgroundColor: '#1A2B5E',
+              color: 'white',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer'
+            }}
+          >
+            📊 Plan Tracking
+          </button>
+          {user.role === 'architect' && (
+            <button 
+              onClick={() => alert('BOQ Service: Generate detailed Bills of Quantities for your projects. (Coming soon!)')}
+              style={{
+                padding: '8px 20px',
+                backgroundColor: '#00A896',
+                color: 'white',
+                border: 'none',
+                borderRadius: '20px',
+                cursor: 'pointer'
+              }}
+            >
+              📋 BOQ Services
+            </button>
+          )}
+          <button 
+            onClick={() => alert('Report any issues or request support.')}
+            style={{
+              padding: '8px 20px',
+              backgroundColor: '#f39c12',
+              color: 'white',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer'
+            }}
+          >
+            🆘 Support
+          </button>
+        </div>
+
+        {/* Architect-Only: New Submission Form */}
         {user.role === 'architect' && (
-          <div style={{ backgroundColor: '#fff', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>📤 New Submission</h2>
+          <div style={{ 
+            backgroundColor: '#fff', 
+            padding: '25px', 
+            border: '1px solid #ddd', 
+            borderRadius: '10px', 
+            marginBottom: '30px' 
+          }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>
+              📤 New Submission
+            </h2>
             <form onSubmit={createSubmission}>
-              <div style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Project Name"
+                    value={newProject.project_name}
+                    onChange={(e) => setNewProject({ ...newProject, project_name: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Project Address"
+                    value={newProject.project_address}
+                    onChange={(e) => setNewProject({ ...newProject, project_address: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <select
+                    value={newProject.council}
+                    onChange={(e) => setNewProject({ ...newProject, council: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  >
+                    <option value="">Select Council...</option>
+                    <option value="Harare City Council">Harare City Council</option>
+                    <option value="Bulawayo City Council">Bulawayo City Council</option>
+                    <option value="Mutare City Council">Mutare City Council</option>
+                    <option value="Gweru City Council">Gweru City Council</option>
+                    <option value="Kwekwe City Council">Kwekwe City Council</option>
+                    <option value="Masvingo City Council">Masvingo City Council</option>
+                  </select>
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    placeholder="Land Size (sqm)"
+                    value={newProject.land_size}
+                    onChange={(e) => setNewProject({ ...newProject, land_size: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <select
+                    value={newProject.usage_type}
+                    onChange={(e) => setNewProject({ ...newProject, usage_type: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                  >
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="industrial">Industrial</option>
+                  </select>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Scale (e.g., 1:100)"
+                    value={newProject.declared_scale}
+                    onChange={(e) => setNewProject({ ...newProject, declared_scale: e.target.value })}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: '10px' }}>
                 <input
                   type="text"
-                  placeholder="Project Name"
-                  value={newProject.project_name}
-                  onChange={(e) => setNewProject({ ...newProject, project_name: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="Project Address"
-                  value={newProject.project_address}
-                  onChange={(e) => setNewProject({ ...newProject, project_address: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={newProject.city}
-                  onChange={(e) => setNewProject({ ...newProject, city: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <input
-                  type="number"
-                  placeholder="Land Size (sqm)"
-                  value={newProject.land_size}
-                  onChange={(e) => setNewProject({ ...newProject, land_size: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <select
-                  value={newProject.usage_type}
-                  onChange={(e) => setNewProject({ ...newProject, usage_type: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                >
-                  <option value="residential">Residential</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="industrial">Industrial</option>
-                </select>
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="Declared Scale (e.g., 1:100)"
-                  value={newProject.declared_scale}
-                  onChange={(e) => setNewProject({ ...newProject, declared_scale: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="PDF URL (placeholder for now)"
+                  placeholder="PDF URL (Google Drive or Dropbox link)"
                   value={newProject.file_url}
                   onChange={(e) => setNewProject({ ...newProject, file_url: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
                 />
-                <small style={{ color: '#666' }}>For MVP, paste a link to your plan PDF (Google Drive or Dropbox).</small>
+                <small style={{ color: '#666' }}>Paste a shareable link to your plan PDF.</small>
               </div>
               <button
                 type="submit"
@@ -549,7 +748,8 @@ function App() {
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '16px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  marginTop: '15px'
                 }}
               >
                 {loading ? 'Submitting...' : 'Submit Plan'}
@@ -560,30 +760,73 @@ function App() {
 
         {/* Submissions List */}
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>📋 My Submissions</h2>
-          <button
-            onClick={fetchSubmissions}
-            style={{
-              padding: '8px 15px',
-              backgroundColor: '#00A896',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              marginBottom: '15px'
-            }}
-          >
-            Refresh
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
+              {user.role === 'architect' ? '📋 My Submissions' : '📋 All Submissions'}
+            </h2>
+            <button
+              onClick={fetchSubmissions}
+              style={{
+                padding: '8px 15px',
+                backgroundColor: '#00A896',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              Refresh
+            </button>
+          </div>
           {submissions.length === 0 ? (
-            <p>No submissions yet. Submit your first plan!</p>
+            <p style={{ color: '#666' }}>No submissions yet. Submit your first plan!</p>
           ) : (
             submissions.map((sub) => (
-              <div key={sub.id} style={{ backgroundColor: '#fff', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '10px' }}>
-                <h3 style={{ fontWeight: 'bold' }}>{sub.project_name}</h3>
-                <p style={{ color: '#666' }}>{sub.project_address}, {sub.city}</p>
-                <p><strong>Status:</strong> <span style={{ color: sub.status === 'approved' ? '#00A896' : sub.status === 'submitted' ? '#f39c12' : '#e74c3c' }}>{sub.status}</span></p>
-                <p><strong>Submitted:</strong> {new Date(sub.submitted_at).toLocaleDateString()}</p>
+              <div key={sub.id} style={{ 
+                backgroundColor: '#fff', 
+                padding: '15px', 
+                border: '1px solid #ddd', 
+                borderRadius: '8px', 
+                marginBottom: '10px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>{sub.project_name}</h3>
+                  <p style={{ margin: '0', color: '#666' }}>{sub.project_address}, {sub.city}</p>
+                  <p style={{ margin: '5px 0 0 0' }}>
+                    <strong>Status:</strong> 
+                    <span style={{ 
+                      color: sub.status === 'approved' ? '#00A896' : 
+                             sub.status === 'submitted' ? '#f39c12' : 
+                             sub.status === 'changes_required' ? '#e74c3c' : '#666',
+                      marginLeft: '5px'
+                    }}>
+                      {sub.status.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
+                    {new Date(sub.submitted_at).toLocaleDateString()}
+                  </p>
+                  <button 
+                    style={{
+                      padding: '4px 12px',
+                      backgroundColor: '#1A2B5E',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      marginTop: '5px'
+                    }}
+                    onClick={() => alert(`Plan #${sub.id}\nStatus: ${sub.status}\nSubmitted: ${new Date(sub.submitted_at).toLocaleString()}`)}
+                  >
+                    View Details
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -591,7 +834,7 @@ function App() {
 
         <button
           onClick={() => setView('home')}
-          style={{ marginTop: '20px', padding: '10px', backgroundColor: '#eee', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          style={{ marginTop: '30px', padding: '10px', backgroundColor: '#eee', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
         >
           ← Back to Home
         </button>
