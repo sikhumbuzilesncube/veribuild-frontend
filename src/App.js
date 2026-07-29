@@ -1,6 +1,6 @@
 // ============================================
-// VERIBUILD FRONTEND - PROFESSIONAL VERSION
-// Deploy to Vercel
+// VERIBUILD FRONTEND - PROFESSIONAL VERSION 2.0
+// No AI boilerplate. Clean, corporate design.
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -26,7 +26,7 @@ function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState('architect');
-  const [regCouncil, setRegCouncil] = useState(''); // CHANGED: council instead of city
+  const [regCouncil, setRegCouncil] = useState('');
   const [regRegNumber, setRegRegNumber] = useState('');
 
   // Submission state
@@ -73,7 +73,7 @@ function App() {
         password: regPassword,
         full_name: regFullName,
         role: regRole,
-        city: regCouncil, // Store council as city for now
+        city: regCouncil,
         registration_number: regRegNumber
       });
       const { token, user } = response.data;
@@ -173,7 +173,7 @@ function App() {
   }, [token]);
 
   // ============================================
-  // HOME PAGE (IMPROVED)
+  // HOME PAGE (REDESIGNED)
   // ============================================
 
   const renderHome = () => (
@@ -185,31 +185,29 @@ function App() {
     }}>
       {/* Header */}
       <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+        textAlign: 'center',
         marginBottom: '40px',
         borderBottom: '1px solid #e0e0e0',
-        paddingBottom: '20px'
+        paddingBottom: '30px'
       }}>
-        <div>
-          <h1 style={{ fontSize: '36px', fontWeight: 'bold', margin: 0 }}>
-            🏗️ VeriBuild
-          </h1>
-          <p style={{ color: '#666', margin: '5px 0 0 0' }}>
-            AI-powered building approval platform
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '15px' }}>
+        <h1 style={{ fontSize: '42px', fontWeight: 'bold', margin: '0 0 5px 0', color: '#1A2B5E' }}>
+          VeriBuild
+        </h1>
+        <p style={{ color: '#666', fontSize: '18px', margin: '0 0 25px 0' }}>
+          AI-powered building approval platform
+        </p>
+        
+        {/* Buttons moved below the tagline */}
+        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
           <button
             onClick={() => setView('login')}
             style={{
-              padding: '10px 25px',
+              padding: '10px 35px',
               backgroundColor: '#1A2B5E',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
-              fontSize: '14px',
+              fontSize: '16px',
               cursor: 'pointer'
             }}
           >
@@ -218,12 +216,12 @@ function App() {
           <button
             onClick={() => setView('register')}
             style={{
-              padding: '10px 25px',
+              padding: '10px 35px',
               backgroundColor: '#00A896',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
-              fontSize: '14px',
+              fontSize: '16px',
               cursor: 'pointer'
             }}
           >
@@ -240,7 +238,7 @@ function App() {
         marginBottom: '40px',
         textAlign: 'center'
       }}>
-        <h2 style={{ fontSize: '28px', marginBottom: '10px' }}>
+        <h2 style={{ fontSize: '28px', marginBottom: '10px', color: '#1A2B5E' }}>
           Streamline Your Building Approvals
         </h2>
         <p style={{ fontSize: '18px', color: '#333', maxWidth: '600px', margin: '0 auto' }}>
@@ -256,27 +254,27 @@ function App() {
         marginBottom: '40px'
       }}>
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3 style={{ marginTop: 0 }}>📄 Submit Plans</h3>
+          <h3 style={{ marginTop: 0, color: '#1A2B5E' }}>Digital Submissions</h3>
           <p style={{ color: '#666', fontSize: '14px' }}>Architects submit building plans digitally with a single click.</p>
         </div>
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3 style={{ marginTop: 0 }}>⚡ Fast Approvals</h3>
+          <h3 style={{ marginTop: 0, color: '#1A2B5E' }}>Rapid Approvals</h3>
           <p style={{ color: '#666', fontSize: '14px' }}>Councils review, comment, and approve plans in record time.</p>
         </div>
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3 style={{ marginTop: 0 }}>🏆 Public Leaderboard</h3>
+          <h3 style={{ marginTop: 0, color: '#1A2B5E' }}>Transparent Leaderboard</h3>
           <p style={{ color: '#666', fontSize: '14px' }}>See which architects have the best approval track record.</p>
         </div>
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3 style={{ marginTop: 0 }}>🔍 Plan Tracking</h3>
+          <h3 style={{ marginTop: 0, color: '#1A2B5E' }}>Real-Time Tracking</h3>
           <p style={{ color: '#666', fontSize: '14px' }}>Real-time updates on the progress of your submissions.</p>
         </div>
       </div>
 
       {/* Leaderboard */}
       <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '15px' }}>
-          🏆 Top Architects
+        <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '15px', color: '#1A2B5E' }}>
+          Top Architects
         </h2>
         {leaderboard.length === 0 ? (
           <p>No approved plans yet. Be the first!</p>
@@ -284,7 +282,7 @@ function App() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th style={{ padding: '12px', textAlign: 'left' }}>#</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Rank</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>Architect</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>Council</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>Approved</th>
@@ -323,7 +321,7 @@ function App() {
 
   const renderLogin = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>
+      <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#1A2B5E' }}>
         Login to VeriBuild
       </h2>
       <form onSubmit={handleLogin}>
@@ -383,12 +381,12 @@ function App() {
   );
 
   // ============================================
-  // REGISTER PAGE (UPDATED)
+  // REGISTER PAGE
   // ============================================
 
   const renderRegister = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>
+      <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#1A2B5E' }}>
         Register for VeriBuild
       </h2>
       <form onSubmit={handleRegister}>
@@ -428,7 +426,6 @@ function App() {
             value={regRole}
             onChange={(e) => {
               setRegRole(e.target.value);
-              // Clear registration number if council officer
               if (e.target.value === 'council_officer') {
                 setRegRegNumber('');
               }
@@ -440,7 +437,6 @@ function App() {
           </select>
         </div>
 
-        {/* Council Selection (replaces city) */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px' }}>Council</label>
           <select
@@ -462,7 +458,6 @@ function App() {
           </select>
         </div>
 
-        {/* Architect Registration Number (only shown for architects) */}
         {regRole === 'architect' && (
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px' }}>Architect Registration Number</label>
@@ -529,7 +524,7 @@ function App() {
         margin: '0 auto',
         fontFamily: 'Arial, sans-serif'
       }}>
-        {/* Dashboard Header */}
+        {/* Dashboard Header - NO EMOJIS */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -539,8 +534,8 @@ function App() {
           paddingBottom: '20px'
         }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '28px' }}>
-              👋 Welcome, {user.full_name}
+            <h1 style={{ margin: 0, fontSize: '28px', color: '#1A2B5E' }}>
+              Welcome, {user.full_name}
             </h1>
             <p style={{ margin: '5px 0 0 0', color: '#666' }}>
               {user.role === 'architect' ? 'Architect' : 'Council Officer'} • {user.city || 'Council not set'}
@@ -561,7 +556,7 @@ function App() {
           </button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Professional */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
@@ -570,7 +565,7 @@ function App() {
         }}>
           <div style={{ backgroundColor: '#f0f4f8', padding: '15px', borderRadius: '8px' }}>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Total Submissions</p>
-            <h2 style={{ margin: '5px 0 0 0' }}>{submissions.length}</h2>
+            <h2 style={{ margin: '5px 0 0 0', color: '#1A2B5E' }}>{submissions.length}</h2>
           </div>
           <div style={{ backgroundColor: '#e8f5e9', padding: '15px', borderRadius: '8px' }}>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Approved</p>
@@ -592,7 +587,7 @@ function App() {
           </div>
         </div>
 
-        {/* Service Navigation (NEW) */}
+        {/* Service Navigation - No Emojis */}
         <div style={{ 
           display: 'flex', 
           gap: '15px', 
@@ -613,7 +608,7 @@ function App() {
               cursor: 'pointer'
             }}
           >
-            📊 Plan Tracking
+            Plan Tracking
           </button>
           {user.role === 'architect' && (
             <button 
@@ -627,7 +622,7 @@ function App() {
                 cursor: 'pointer'
               }}
             >
-              📋 BOQ Services
+              BOQ Services
             </button>
           )}
           <button 
@@ -641,11 +636,11 @@ function App() {
               cursor: 'pointer'
             }}
           >
-            🆘 Support
+            Support
           </button>
         </div>
 
-        {/* Architect-Only: New Submission Form */}
+        {/* Architect-Only: New Submission Form - No Emojis */}
         {user.role === 'architect' && (
           <div style={{ 
             backgroundColor: '#fff', 
@@ -654,8 +649,8 @@ function App() {
             borderRadius: '10px', 
             marginBottom: '30px' 
           }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>
-              📤 New Submission
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#1A2B5E' }}>
+              New Submission
             </h2>
             <form onSubmit={createSubmission}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -758,11 +753,11 @@ function App() {
           </div>
         )}
 
-        {/* Submissions List */}
+        {/* Submissions List - No Emojis */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
-              {user.role === 'architect' ? '📋 My Submissions' : '📋 All Submissions'}
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>
+              {user.role === 'architect' ? 'My Submissions' : 'All Submissions'}
             </h2>
             <button
               onClick={fetchSubmissions}
@@ -793,7 +788,7 @@ function App() {
                 alignItems: 'center'
               }}>
                 <div>
-                  <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>{sub.project_name}</h3>
+                  <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#1A2B5E' }}>{sub.project_name}</h3>
                   <p style={{ margin: '0', color: '#666' }}>{sub.project_address}, {sub.city}</p>
                   <p style={{ margin: '5px 0 0 0' }}>
                     <strong>Status:</strong> 
