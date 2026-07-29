@@ -1,6 +1,5 @@
 // ============================================
-// VERIBUILD FRONTEND - PROFESSIONAL VERSION 3.0
-// With Council Request Logic
+// VERIBUILD FRONTEND - WITH FILE UPLOAD
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -8,6 +7,11 @@ import axios from 'axios';
 
 // API URL
 const API_URL = 'https://veribuild-backend.onrender.com/api';
+
+// Supabase Configuration (for file uploads)
+// You need to add these to your environment variables in Vercel
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 
 function App() {
   const [view, setView] = useState('home');
@@ -28,8 +32,6 @@ function App() {
   const [regRole, setRegRole] = useState('architect');
   const [regCouncil, setRegCouncil] = useState('');
   const [regRegNumber, setRegRegNumber] = useState('');
-  
-  // NEW: Council Request Fields
   const [showCouncilOther, setShowCouncilOther] = useState(false);
   const [regCouncilOther, setRegCouncilOther] = useState('');
   const [regCouncilNotifyEmail, setRegCouncilNotifyEmail] = useState('');
@@ -42,10 +44,15 @@ function App() {
     land_size: '',
     usage_type: 'residential',
     declared_scale: '',
-    file_url: ''
   });
+  
+  // File upload state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [fileUrl, setFileUrl] = useState('');
 
-  // NEW: Submission Council Request
+  // Submission Council Request
   const [subCouncilOther, setSubCouncilOther] = useState('');
   const [subCouncilNotifyEmail, setSubCouncilNotifyEmail] = useState('');
 
@@ -77,7 +84,6 @@ function App() {
     e.preventDefault();
     setLoading(true);
     try {
-      // If "Other" council is selected, use the custom name
       const finalCouncil = regCouncil === 'other' ? regCouncilOther : regCouncil;
       
       const response = await axios.post(`${API_URL}/auth/register`, {
@@ -94,9 +100,7 @@ function App() {
       setUser(user);
       setView('dashboard');
       
-      // If council is "other", send a notification request
       if (regCouncil === 'other' && regCouncilNotifyEmail) {
-        // You can implement a separate API endpoint to save council requests
         console.log('Council request saved:', regCouncilOther, regCouncilNotifyEmail);
         alert('Registration successful! We will notify you when your council joins VeriBuild.');
       } else {
@@ -113,6 +117,59 @@ function App() {
     setToken('');
     setUser(null);
     setView('home');
+  };
+
+  // ============================================
+  // FILE UPLOAD FUNCTIONS
+  // ============================================
+
+  const uploadFileToSupabase = async (file, fileName) => {
+    try {
+      // Get the current user's ID
+      const userId = user?.id || 'anonymous';
+      
+      // Create a unique file path
+      const filePath = `submissions/${userId}/${Date.now()}_${fileName}`;
+      
+      // Prepare the upload
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Use Supabase Storage API directly
+      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/submissions/${filePath}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
+      // Get the public URL
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/submissions/${filePath}`;
+      
+      setUploadStatus('Upload complete!');
+      setUploadProgress(100);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus('Upload failed: ' + error.message);
+      throw error;
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadStatus('File selected: ' + file.name);
+      setUploadProgress(0);
+    }
   };
 
   // ============================================
@@ -138,14 +195,25 @@ function App() {
       return;
     }
     
-    // Determine final council name
-    let finalCouncil = newProject.council;
-    if (newProject.council === 'other') {
-      finalCouncil = subCouncilOther || 'Unnamed Council';
+    if (!selectedFile) {
+      alert('Please select a plan file to upload.');
+      return;
     }
     
     setLoading(true);
+    setUploadStatus('Uploading file...');
+    
     try {
+      // Upload the file to Supabase Storage
+      const publicUrl = await uploadFileToSupabase(selectedFile, selectedFile.name);
+      
+      // Determine final council name
+      let finalCouncil = newProject.council;
+      if (newProject.council === 'other') {
+        finalCouncil = subCouncilOther || 'Unnamed Council';
+      }
+      
+      // Create the submission with the file URL
       await axios.post(`${API_URL}/submissions`, {
         project_name: newProject.project_name,
         project_address: newProject.project_address,
@@ -153,12 +221,11 @@ function App() {
         land_size: parseFloat(newProject.land_size),
         usage_type: newProject.usage_type,
         declared_scale: newProject.declared_scale,
-        file_url: newProject.file_url || 'https://example.com/placeholder.pdf'
+        file_url: publicUrl  // Store the public URL
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // If council is "other", save the request
       if (newProject.council === 'other' && subCouncilNotifyEmail) {
         console.log('Council request saved for submission:', subCouncilOther, subCouncilNotifyEmail);
         alert('Plan submitted! We will notify you when your council joins VeriBuild.');
@@ -166,6 +233,7 @@ function App() {
         alert('Submission created successfully!');
       }
       
+      // Reset form
       setNewProject({
         project_name: '',
         project_address: '',
@@ -173,13 +241,17 @@ function App() {
         land_size: '',
         usage_type: 'residential',
         declared_scale: '',
-        file_url: ''
       });
+      setSelectedFile(null);
+      setUploadStatus('');
+      setUploadProgress(0);
       setSubCouncilOther('');
       setSubCouncilNotifyEmail('');
+      setFileUrl('');
+      
       fetchSubmissions();
     } catch (error) {
-      alert('Submission failed: ' + (error.response?.data?.detail || 'Unknown error'));
+      alert('Submission failed: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
     }
     setLoading(false);
   };
@@ -194,20 +266,6 @@ function App() {
       setLeaderboard(response.data.leaderboard || []);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
-    }
-  };
-
-  // ============================================
-  // COUNCIL REQUEST FUNCTION
-  // ============================================
-
-  const submitCouncilRequest = async (councilName, email, source) => {
-    try {
-      // You can implement a dedicated API endpoint for this
-      // For now, we'll just log it
-      console.log('Council Request:', { councilName, email, source });
-    } catch (error) {
-      console.error('Error submitting council request:', error);
     }
   };
 
@@ -426,7 +484,7 @@ function App() {
   );
 
   // ============================================
-  // REGISTER PAGE (UPDATED WITH COUNCIL REQUEST)
+  // REGISTER PAGE
   // ============================================
 
   const renderRegister = () => (
@@ -595,7 +653,7 @@ function App() {
   );
 
   // ============================================
-  // DASHBOARD (UPDATED WITH COUNCIL REQUEST)
+  // DASHBOARD (WITH FILE UPLOAD)
   // ============================================
 
   const renderDashboard = () => {
@@ -811,15 +869,34 @@ function App() {
                   />
                 </div>
               </div>
-              <div style={{ marginTop: '10px' }}>
+              
+              {/* FILE UPLOAD - REPLACES THE URL FIELD */}
+              <div style={{ marginTop: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Upload Plan File (PDF or CAD)
+                </label>
                 <input
-                  type="text"
-                  placeholder="PDF URL (Google Drive or Dropbox link)"
-                  value={newProject.file_url}
-                  onChange={(e) => setNewProject({ ...newProject, file_url: e.target.value })}
+                  type="file"
+                  accept=".pdf,.dwg,.dxf"
+                  onChange={handleFileChange}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                  required
                 />
-                <small style={{ color: '#666' }}>Paste a shareable link to your plan PDF.</small>
+                {selectedFile && (
+                  <div style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
+                    <strong>Selected:</strong> {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                  </div>
+                )}
+                {uploadStatus && (
+                  <div style={{ marginTop: '5px', fontSize: '14px', color: uploadStatus.includes('failed') ? '#e74c3c' : '#00A896' }}>
+                    {uploadStatus}
+                  </div>
+                )}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div style={{ width: '100%', backgroundColor: '#f0f0f0', borderRadius: '5px', marginTop: '5px' }}>
+                    <div style={{ width: `${uploadProgress}%`, backgroundColor: '#1A2B5E', height: '5px', borderRadius: '5px' }}></div>
+                  </div>
+                )}
               </div>
 
               {newProject.council === 'other' && (
@@ -862,7 +939,7 @@ function App() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !selectedFile}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -871,8 +948,9 @@ function App() {
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '16px',
-                  cursor: 'pointer',
-                  marginTop: '15px'
+                  cursor: loading || !selectedFile ? 'not-allowed' : 'pointer',
+                  marginTop: '15px',
+                  opacity: loading || !selectedFile ? 0.6 : 1
                 }}
               >
                 {loading ? 'Submitting...' : 'Submit Plan'}
@@ -928,6 +1006,16 @@ function App() {
                       {sub.status.toUpperCase()}
                     </span>
                   </p>
+                  {sub.file_url && (
+                    <a 
+                      href={sub.file_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '12px', color: '#1A2B5E' }}
+                    >
+                      View Plan PDF
+                    </a>
+                  )}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
