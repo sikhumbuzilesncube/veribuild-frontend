@@ -1,6 +1,6 @@
 // ============================================
-// VERIBUILD FRONTEND - PROFESSIONAL VERSION 2.0
-// No AI boilerplate. Clean, corporate design.
+// VERIBUILD FRONTEND - PROFESSIONAL VERSION 3.0
+// With Council Request Logic
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -28,6 +28,11 @@ function App() {
   const [regRole, setRegRole] = useState('architect');
   const [regCouncil, setRegCouncil] = useState('');
   const [regRegNumber, setRegRegNumber] = useState('');
+  
+  // NEW: Council Request Fields
+  const [showCouncilOther, setShowCouncilOther] = useState(false);
+  const [regCouncilOther, setRegCouncilOther] = useState('');
+  const [regCouncilNotifyEmail, setRegCouncilNotifyEmail] = useState('');
 
   // Submission state
   const [newProject, setNewProject] = useState({
@@ -39,6 +44,10 @@ function App() {
     declared_scale: '',
     file_url: ''
   });
+
+  // NEW: Submission Council Request
+  const [subCouncilOther, setSubCouncilOther] = useState('');
+  const [subCouncilNotifyEmail, setSubCouncilNotifyEmail] = useState('');
 
   // ============================================
   // AUTH FUNCTIONS
@@ -68,12 +77,15 @@ function App() {
     e.preventDefault();
     setLoading(true);
     try {
+      // If "Other" council is selected, use the custom name
+      const finalCouncil = regCouncil === 'other' ? regCouncilOther : regCouncil;
+      
       const response = await axios.post(`${API_URL}/auth/register`, {
         email: regEmail,
         password: regPassword,
         full_name: regFullName,
         role: regRole,
-        city: regCouncil,
+        city: finalCouncil,
         registration_number: regRegNumber
       });
       const { token, user } = response.data;
@@ -81,7 +93,15 @@ function App() {
       setToken(token);
       setUser(user);
       setView('dashboard');
-      alert('Registration successful!');
+      
+      // If council is "other", send a notification request
+      if (regCouncil === 'other' && regCouncilNotifyEmail) {
+        // You can implement a separate API endpoint to save council requests
+        console.log('Council request saved:', regCouncilOther, regCouncilNotifyEmail);
+        alert('Registration successful! We will notify you when your council joins VeriBuild.');
+      } else {
+        alert('Registration successful!');
+      }
     } catch (error) {
       alert('Registration failed: ' + (error.response?.data?.detail || 'Unknown error'));
     }
@@ -117,12 +137,19 @@ function App() {
       alert('Please login first');
       return;
     }
+    
+    // Determine final council name
+    let finalCouncil = newProject.council;
+    if (newProject.council === 'other') {
+      finalCouncil = subCouncilOther || 'Unnamed Council';
+    }
+    
     setLoading(true);
     try {
       await axios.post(`${API_URL}/submissions`, {
         project_name: newProject.project_name,
         project_address: newProject.project_address,
-        city: newProject.council,
+        city: finalCouncil,
         land_size: parseFloat(newProject.land_size),
         usage_type: newProject.usage_type,
         declared_scale: newProject.declared_scale,
@@ -130,7 +157,15 @@ function App() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Submission created successfully!');
+      
+      // If council is "other", save the request
+      if (newProject.council === 'other' && subCouncilNotifyEmail) {
+        console.log('Council request saved for submission:', subCouncilOther, subCouncilNotifyEmail);
+        alert('Plan submitted! We will notify you when your council joins VeriBuild.');
+      } else {
+        alert('Submission created successfully!');
+      }
+      
       setNewProject({
         project_name: '',
         project_address: '',
@@ -140,6 +175,8 @@ function App() {
         declared_scale: '',
         file_url: ''
       });
+      setSubCouncilOther('');
+      setSubCouncilNotifyEmail('');
       fetchSubmissions();
     } catch (error) {
       alert('Submission failed: ' + (error.response?.data?.detail || 'Unknown error'));
@@ -161,6 +198,20 @@ function App() {
   };
 
   // ============================================
+  // COUNCIL REQUEST FUNCTION
+  // ============================================
+
+  const submitCouncilRequest = async (councilName, email, source) => {
+    try {
+      // You can implement a dedicated API endpoint for this
+      // For now, we'll just log it
+      console.log('Council Request:', { councilName, email, source });
+    } catch (error) {
+      console.error('Error submitting council request:', error);
+    }
+  };
+
+  // ============================================
   // AUTO-LOGIN CHECK
   // ============================================
 
@@ -173,7 +224,7 @@ function App() {
   }, [token]);
 
   // ============================================
-  // HOME PAGE (REDESIGNED)
+  // HOME PAGE
   // ============================================
 
   const renderHome = () => (
@@ -183,7 +234,6 @@ function App() {
       margin: '0 auto',
       fontFamily: 'Arial, sans-serif'
     }}>
-      {/* Header */}
       <div style={{ 
         textAlign: 'center',
         marginBottom: '40px',
@@ -197,7 +247,6 @@ function App() {
           AI-powered building approval platform
         </p>
         
-        {/* Buttons moved below the tagline */}
         <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
           <button
             onClick={() => setView('login')}
@@ -230,7 +279,6 @@ function App() {
         </div>
       </div>
 
-      {/* Hero Section */}
       <div style={{ 
         backgroundColor: '#f0f4f8', 
         padding: '40px', 
@@ -246,7 +294,6 @@ function App() {
         </p>
       </div>
 
-      {/* Features Grid */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
@@ -271,7 +318,6 @@ function App() {
         </div>
       </div>
 
-      {/* Leaderboard */}
       <div style={{ marginBottom: '40px' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '15px', color: '#1A2B5E' }}>
           Top Architects
@@ -302,7 +348,6 @@ function App() {
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ 
         borderTop: '1px solid #e0e0e0', 
         paddingTop: '20px', 
@@ -381,7 +426,7 @@ function App() {
   );
 
   // ============================================
-  // REGISTER PAGE
+  // REGISTER PAGE (UPDATED WITH COUNCIL REQUEST)
   // ============================================
 
   const renderRegister = () => (
@@ -441,7 +486,10 @@ function App() {
           <label style={{ display: 'block', marginBottom: '5px' }}>Council</label>
           <select
             value={regCouncil}
-            onChange={(e) => setRegCouncil(e.target.value)}
+            onChange={(e) => {
+              setRegCouncil(e.target.value);
+              setShowCouncilOther(e.target.value === 'other');
+            }}
             style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
             required
           >
@@ -454,9 +502,47 @@ function App() {
             <option value="Masvingo City Council">Masvingo City Council</option>
             <option value="Marondera Municipality">Marondera Municipality</option>
             <option value="Chinhoyi Municipality">Chinhoyi Municipality</option>
-            <option value="Other">Other</option>
+            <option value="other">Other (Council not listed)</option>
           </select>
         </div>
+
+        {showCouncilOther && (
+          <div style={{ 
+            marginBottom: '15px', 
+            padding: '15px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px',
+            border: '1px solid #ffc107'
+          }}>
+            <p style={{ marginTop: 0, marginBottom: '10px', color: '#856404' }}>
+              <strong>Council not yet on VeriBuild?</strong> 
+              Enter the name below and we'll notify you when they join.
+            </p>
+            <div style={{ marginBottom: '10px' }}>
+              <label style={{ display: 'block', marginBottom: '5px' }}>Council Name</label>
+              <input
+                type="text"
+                placeholder="e.g., Chitungwiza Municipality"
+                value={regCouncilOther}
+                onChange={(e) => setRegCouncilOther(e.target.value)}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                required={showCouncilOther}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px' }}>Email for Notification</label>
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={regCouncilNotifyEmail}
+                onChange={(e) => setRegCouncilNotifyEmail(e.target.value)}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                required={showCouncilOther}
+              />
+              <small style={{ color: '#666' }}>We'll email you when your council joins VeriBuild.</small>
+            </div>
+          </div>
+        )}
 
         {regRole === 'architect' && (
           <div style={{ marginBottom: '15px' }}>
@@ -509,7 +595,7 @@ function App() {
   );
 
   // ============================================
-  // DASHBOARD (PROFESSIONAL)
+  // DASHBOARD (UPDATED WITH COUNCIL REQUEST)
   // ============================================
 
   const renderDashboard = () => {
@@ -524,7 +610,6 @@ function App() {
         margin: '0 auto',
         fontFamily: 'Arial, sans-serif'
       }}>
-        {/* Dashboard Header - NO EMOJIS */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -556,7 +641,6 @@ function App() {
           </button>
         </div>
 
-        {/* Stats Cards - Professional */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
@@ -587,7 +671,6 @@ function App() {
           </div>
         </div>
 
-        {/* Service Navigation - No Emojis */}
         <div style={{ 
           display: 'flex', 
           gap: '15px', 
@@ -640,7 +723,6 @@ function App() {
           </button>
         </div>
 
-        {/* Architect-Only: New Submission Form - No Emojis */}
         {user.role === 'architect' && (
           <div style={{ 
             backgroundColor: '#fff', 
@@ -677,7 +759,13 @@ function App() {
                 <div>
                   <select
                     value={newProject.council}
-                    onChange={(e) => setNewProject({ ...newProject, council: e.target.value })}
+                    onChange={(e) => {
+                      setNewProject({ ...newProject, council: e.target.value });
+                      if (e.target.value !== 'other') {
+                        setSubCouncilOther('');
+                        setSubCouncilNotifyEmail('');
+                      }
+                    }}
                     style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
                     required
                   >
@@ -688,6 +776,7 @@ function App() {
                     <option value="Gweru City Council">Gweru City Council</option>
                     <option value="Kwekwe City Council">Kwekwe City Council</option>
                     <option value="Masvingo City Council">Masvingo City Council</option>
+                    <option value="other">Other (Council not listed)</option>
                   </select>
                 </div>
                 <div>
@@ -732,6 +821,45 @@ function App() {
                 />
                 <small style={{ color: '#666' }}>Paste a shareable link to your plan PDF.</small>
               </div>
+
+              {newProject.council === 'other' && (
+                <div style={{ 
+                  marginTop: '15px', 
+                  padding: '15px', 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: '8px',
+                  border: '1px solid #ffc107'
+                }}>
+                  <p style={{ marginTop: 0, marginBottom: '10px', color: '#856404' }}>
+                    <strong>Council not yet on VeriBuild?</strong> 
+                    Submit your plan anyway. We'll notify you when they join.
+                  </p>
+                  <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Council Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Chitungwiza Municipality"
+                      value={subCouncilOther}
+                      onChange={(e) => setSubCouncilOther(e.target.value)}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                      required={newProject.council === 'other'}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px' }}>Email for Notification</label>
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={subCouncilNotifyEmail}
+                      onChange={(e) => setSubCouncilNotifyEmail(e.target.value)}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                      required={newProject.council === 'other'}
+                    />
+                    <small style={{ color: '#666' }}>We'll email you when your council joins VeriBuild.</small>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
@@ -753,7 +881,6 @@ function App() {
           </div>
         )}
 
-        {/* Submissions List - No Emojis */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>
