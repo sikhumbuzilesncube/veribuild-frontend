@@ -1,5 +1,5 @@
 // ============================================
-// VERIBUILD FRONTEND - PROFESSIONAL VERSION
+// VERIBUILD FRONTEND - DESKTOP OPTIMIZED
 // Deploy to Vercel
 // ============================================
 
@@ -57,6 +57,18 @@ function App() {
   // Submission Council Request
   const [subCouncilOther, setSubCouncilOther] = useState('');
   const [subCouncilNotifyEmail, setSubCouncilNotifyEmail] = useState('');
+
+  // ============================================
+  // SESSION MANAGEMENT
+  // ============================================
+
+  // Ensure token is loaded from localStorage on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
 
   // ============================================
   // AUTH FUNCTIONS
@@ -822,12 +834,39 @@ function App() {
   };
 
   // ============================================
-  // DASHBOARD (COUNCIL OFFICER)
+  // DASHBOARD (DESKTOP OPTIMIZED)
   // ============================================
 
   const renderDashboard = () => {
+    // Check if user is logged in
     if (!user) {
-      return <p>Please login first.</p>;
+      return (
+        <div style={{ 
+          padding: '60px 20px', 
+          textAlign: 'center', 
+          maxWidth: '600px', 
+          margin: '0 auto',
+          fontFamily: 'Arial, sans-serif'
+        }}>
+          <h2 style={{ color: '#1A2B5E' }}>Please log in to access your dashboard</h2>
+          <p style={{ color: '#666' }}>Your session may have expired or you are not logged in.</p>
+          <button 
+            onClick={() => setView('login')} 
+            style={{ 
+              marginTop: '20px', 
+              padding: '12px 40px', 
+              backgroundColor: '#1A2B5E', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      );
     }
 
     const isCouncil = user.role === 'council_officer';
@@ -839,8 +878,8 @@ function App() {
 
     return (
       <div style={{ 
-        padding: '20px', 
-        maxWidth: '1200px', 
+        padding: '20px 30px', 
+        maxWidth: '1400px', 
         margin: '0 auto',
         fontFamily: 'Arial, sans-serif',
         backgroundColor: '#f8fafc',
