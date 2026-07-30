@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
   <title>VeriBuild – Smart Building Approval</title>
   <style>
     body {
@@ -17,6 +17,13 @@
     code {
       font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
         monospace;
+    }
+    /* Desktop optimization */
+    @media (min-width: 768px) {
+      body {
+        font-size: 16px;
+        background-color: #f1f4f8;
+      }
     }
   </style>
 </head>
