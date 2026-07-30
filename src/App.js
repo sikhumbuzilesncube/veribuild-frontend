@@ -1,5 +1,6 @@
 // ============================================
-// VERIBUILD FRONTEND - WITH FILE UPLOAD
+// VERIBUILD FRONTEND - WITH COUNCIL DASHBOARD
+// Deploy to Vercel
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -9,7 +10,6 @@ import axios from 'axios';
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 
 // Supabase Configuration (for file uploads)
-// You need to add these to your environment variables in Vercel
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 
@@ -20,6 +20,9 @@ function App() {
   const [submissions, setSubmissions] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewComment, setReviewComment] = useState('');
 
   // Login state
   const [loginEmail, setLoginEmail] = useState('');
@@ -125,17 +128,9 @@ function App() {
 
   const uploadFileToSupabase = async (file, fileName) => {
     try {
-      // Get the current user's ID
       const userId = user?.id || 'anonymous';
-      
-      // Create a unique file path
       const filePath = `submissions/${userId}/${Date.now()}_${fileName}`;
       
-      // Prepare the upload
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Use Supabase Storage API directly
       const response = await fetch(`${SUPABASE_URL}/storage/v1/object/submissions/${filePath}`, {
         method: 'POST',
         headers: {
@@ -149,12 +144,9 @@ function App() {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
       
-      // Get the public URL
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/submissions/${filePath}`;
-      
       setUploadStatus('Upload complete!');
       setUploadProgress(100);
-      
       return publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
@@ -194,26 +186,20 @@ function App() {
       alert('Please login first');
       return;
     }
-    
     if (!selectedFile) {
       alert('Please select a plan file to upload.');
       return;
     }
-    
     setLoading(true);
     setUploadStatus('Uploading file...');
-    
     try {
-      // Upload the file to Supabase Storage
       const publicUrl = await uploadFileToSupabase(selectedFile, selectedFile.name);
       
-      // Determine final council name
       let finalCouncil = newProject.council;
       if (newProject.council === 'other') {
         finalCouncil = subCouncilOther || 'Unnamed Council';
       }
       
-      // Create the submission with the file URL
       await axios.post(`${API_URL}/submissions`, {
         project_name: newProject.project_name,
         project_address: newProject.project_address,
@@ -221,7 +207,7 @@ function App() {
         land_size: parseFloat(newProject.land_size),
         usage_type: newProject.usage_type,
         declared_scale: newProject.declared_scale,
-        file_url: publicUrl  // Store the public URL
+        file_url: publicUrl
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -233,7 +219,6 @@ function App() {
         alert('Submission created successfully!');
       }
       
-      // Reset form
       setNewProject({
         project_name: '',
         project_address: '',
@@ -252,6 +237,49 @@ function App() {
       fetchSubmissions();
     } catch (error) {
       alert('Submission failed: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+    }
+    setLoading(false);
+  };
+
+  // ============================================
+  // COUNCIL REVIEW FUNCTIONS
+  // ============================================
+
+  const openReviewModal = (submission) => {
+    setSelectedSubmission(submission);
+    setReviewComment('');
+    setShowReviewModal(true);
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setSelectedSubmission(null);
+    setReviewComment('');
+  };
+
+  const updateSubmissionStatus = async (status) => {
+    if (!selectedSubmission) return;
+    setLoading(true);
+    try {
+      // Update the submission status
+      await axios.put(`${API_URL}/submissions/${selectedSubmission.id}`, {
+        status: status
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // If there is a comment, we could save it to a comments table
+      if (reviewComment) {
+        // For now, we just log it
+        console.log('Comment:', reviewComment);
+        // TODO: Save to comments table
+      }
+      
+      alert(`Plan ${status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Changes Requested'} successfully!`);
+      closeReviewModal();
+      fetchSubmissions();
+    } catch (error) {
+      alert('Update failed: ' + (error.response?.data?.detail || 'Unknown error'));
     }
     setLoading(false);
   };
@@ -653,13 +681,162 @@ function App() {
   );
 
   // ============================================
-  // DASHBOARD (WITH FILE UPLOAD)
+  // REVIEW MODAL
+  // ============================================
+
+  const renderReviewModal = () => {
+    if (!showReviewModal || !selectedSubmission) return null;
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        padding: '20px'
+      }}>
+        <div style={{
+          backgroundColor: '#fff',
+          borderRadius: '12px',
+          maxWidth: '700px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          padding: '30px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+        }}>
+          <h2 style={{ marginTop: 0, color: '#1A2B5E' }}>
+            Review Submission
+          </h2>
+          
+          <div style={{ marginBottom: '20px' }}>
+            <p><strong>Project:</strong> {selectedSubmission.project_name}</p>
+            <p><strong>Architect:</strong> {selectedSubmission.architect_id}</p>
+            <p><strong>Council:</strong> {selectedSubmission.city}</p>
+            <p><strong>Status:</strong> <span style={{ color: selectedSubmission.status === 'approved' ? '#00A896' : '#f39c12' }}>{selectedSubmission.status.toUpperCase()}</span></p>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <strong>Plan Document:</strong>
+            {selectedSubmission.file_url ? (
+              <a 
+                href={selectedSubmission.file_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ display: 'block', marginTop: '5px', color: '#1A2B5E' }}
+              >
+                📄 View Plan PDF (opens in new tab)
+              </a>
+            ) : (
+              <p>No file uploaded</p>
+            )}
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>
+              Comment / Reason
+            </label>
+            <textarea
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              placeholder="Add your review comments here..."
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                minHeight: '80px',
+                fontFamily: 'Arial, sans-serif'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => updateSubmissionStatus('approved')}
+              disabled={loading}
+              style={{
+                padding: '10px 25px',
+                backgroundColor: '#00A896',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                flex: 1,
+                minWidth: '120px'
+              }}
+            >
+              ✅ Approve
+            </button>
+            <button
+              onClick={() => updateSubmissionStatus('changes_required')}
+              disabled={loading}
+              style={{
+                padding: '10px 25px',
+                backgroundColor: '#f39c12',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                flex: 1,
+                minWidth: '120px'
+              }}
+            >
+              ✏️ Request Changes
+            </button>
+            <button
+              onClick={() => updateSubmissionStatus('rejected')}
+              disabled={loading}
+              style={{
+                padding: '10px 25px',
+                backgroundColor: '#e74c3c',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                flex: 1,
+                minWidth: '120px'
+              }}
+            >
+              ❌ Reject
+            </button>
+            <button
+              onClick={closeReviewModal}
+              style={{
+                padding: '10px 25px',
+                backgroundColor: '#eee',
+                color: '#333',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                flex: 1,
+                minWidth: '120px'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ============================================
+  // DASHBOARD (ARCHITECT AND COUNCIL)
   // ============================================
 
   const renderDashboard = () => {
     if (!user) {
       return <p>Please login first.</p>;
     }
+
+    const isCouncil = user.role === 'council_officer';
 
     return (
       <div style={{ 
@@ -699,6 +876,7 @@ function App() {
           </button>
         </div>
 
+        {/* Stats Cards */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
@@ -751,7 +929,7 @@ function App() {
           >
             Plan Tracking
           </button>
-          {user.role === 'architect' && (
+          {!isCouncil && (
             <button 
               onClick={() => alert('BOQ Service: Generate detailed Bills of Quantities for your projects. (Coming soon!)')}
               style={{
@@ -781,266 +959,341 @@ function App() {
           </button>
         </div>
 
-        {user.role === 'architect' && (
-          <div style={{ 
-            backgroundColor: '#fff', 
-            padding: '25px', 
-            border: '1px solid #ddd', 
-            borderRadius: '10px', 
-            marginBottom: '30px' 
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#1A2B5E' }}>
-              New Submission
-            </h2>
-            <form onSubmit={createSubmission}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Project Name"
-                    value={newProject.project_name}
-                    onChange={(e) => setNewProject({ ...newProject, project_name: e.target.value })}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Project Address"
-                    value={newProject.project_address}
-                    onChange={(e) => setNewProject({ ...newProject, project_address: e.target.value })}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                    required
-                  />
-                </div>
-                <div>
-                  <select
-                    value={newProject.council}
-                    onChange={(e) => {
-                      setNewProject({ ...newProject, council: e.target.value });
-                      if (e.target.value !== 'other') {
-                        setSubCouncilOther('');
-                        setSubCouncilNotifyEmail('');
-                      }
-                    }}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                    required
-                  >
-                    <option value="">Select Council...</option>
-                    <option value="Harare City Council">Harare City Council</option>
-                    <option value="Bulawayo City Council">Bulawayo City Council</option>
-                    <option value="Mutare City Council">Mutare City Council</option>
-                    <option value="Gweru City Council">Gweru City Council</option>
-                    <option value="Kwekwe City Council">Kwekwe City Council</option>
-                    <option value="Masvingo City Council">Masvingo City Council</option>
-                    <option value="other">Other (Council not listed)</option>
-                  </select>
-                </div>
-                <div>
-                  <input
-                    type="number"
-                    placeholder="Land Size (sqm)"
-                    value={newProject.land_size}
-                    onChange={(e) => setNewProject({ ...newProject, land_size: e.target.value })}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                    required
-                  />
-                </div>
-                <div>
-                  <select
-                    value={newProject.usage_type}
-                    onChange={(e) => setNewProject({ ...newProject, usage_type: e.target.value })}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  >
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="industrial">Industrial</option>
-                  </select>
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Scale (e.g., 1:100)"
-                    value={newProject.declared_scale}
-                    onChange={(e) => setNewProject({ ...newProject, declared_scale: e.target.value })}
-                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                    required
-                  />
-                </div>
-              </div>
-              
-              {/* FILE UPLOAD - REPLACES THE URL FIELD */}
-              <div style={{ marginTop: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Upload Plan File (PDF or CAD)
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.dwg,.dxf"
-                  onChange={handleFileChange}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                  required
-                />
-                {selectedFile && (
-                  <div style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
-                    <strong>Selected:</strong> {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
-                  </div>
-                )}
-                {uploadStatus && (
-                  <div style={{ marginTop: '5px', fontSize: '14px', color: uploadStatus.includes('failed') ? '#e74c3c' : '#00A896' }}>
-                    {uploadStatus}
-                  </div>
-                )}
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                  <div style={{ width: '100%', backgroundColor: '#f0f0f0', borderRadius: '5px', marginTop: '5px' }}>
-                    <div style={{ width: `${uploadProgress}%`, backgroundColor: '#1A2B5E', height: '5px', borderRadius: '5px' }}></div>
-                  </div>
-                )}
-              </div>
-
-              {newProject.council === 'other' && (
-                <div style={{ 
-                  marginTop: '15px', 
-                  padding: '15px', 
-                  backgroundColor: '#f8f9fa', 
-                  borderRadius: '8px',
-                  border: '1px solid #ffc107'
-                }}>
-                  <p style={{ marginTop: 0, marginBottom: '10px', color: '#856404' }}>
-                    <strong>Council not yet on VeriBuild?</strong> 
-                    Submit your plan anyway. We'll notify you when they join.
-                  </p>
-                  <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Council Name</label>
+        {/* ============================================
+            ARCHITECT DASHBOARD (Existing)
+            ============================================ */}
+        {!isCouncil && (
+          <>
+            <div style={{ 
+              backgroundColor: '#fff', 
+              padding: '25px', 
+              border: '1px solid #ddd', 
+              borderRadius: '10px', 
+              marginBottom: '30px' 
+            }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#1A2B5E' }}>
+                New Submission
+              </h2>
+              <form onSubmit={createSubmission}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
                     <input
                       type="text"
-                      placeholder="e.g., Chitungwiza Municipality"
-                      value={subCouncilOther}
-                      onChange={(e) => setSubCouncilOther(e.target.value)}
+                      placeholder="Project Name"
+                      value={newProject.project_name}
+                      onChange={(e) => setNewProject({ ...newProject, project_name: e.target.value })}
                       style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                      required={newProject.council === 'other'}
+                      required
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Email for Notification</label>
                     <input
-                      type="email"
-                      placeholder="your@email.com"
-                      value={subCouncilNotifyEmail}
-                      onChange={(e) => setSubCouncilNotifyEmail(e.target.value)}
+                      type="text"
+                      placeholder="Project Address"
+                      value={newProject.project_address}
+                      onChange={(e) => setNewProject({ ...newProject, project_address: e.target.value })}
                       style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
-                      required={newProject.council === 'other'}
+                      required
                     />
-                    <small style={{ color: '#666' }}>We'll email you when your council joins VeriBuild.</small>
+                  </div>
+                  <div>
+                    <select
+                      value={newProject.council}
+                      onChange={(e) => {
+                        setNewProject({ ...newProject, council: e.target.value });
+                        if (e.target.value !== 'other') {
+                          setSubCouncilOther('');
+                          setSubCouncilNotifyEmail('');
+                        }
+                      }}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                      required
+                    >
+                      <option value="">Select Council...</option>
+                      <option value="Harare City Council">Harare City Council</option>
+                      <option value="Bulawayo City Council">Bulawayo City Council</option>
+                      <option value="Mutare City Council">Mutare City Council</option>
+                      <option value="Gweru City Council">Gweru City Council</option>
+                      <option value="Kwekwe City Council">Kwekwe City Council</option>
+                      <option value="Masvingo City Council">Masvingo City Council</option>
+                      <option value="other">Other (Council not listed)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Land Size (sqm)"
+                      value={newProject.land_size}
+                      onChange={(e) => setNewProject({ ...newProject, land_size: e.target.value })}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={newProject.usage_type}
+                      onChange={(e) => setNewProject({ ...newProject, usage_type: e.target.value })}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    >
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                      <option value="industrial">Industrial</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Scale (e.g., 1:100)"
+                      value={newProject.declared_scale}
+                      onChange={(e) => setNewProject({ ...newProject, declared_scale: e.target.value })}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                      required
+                    />
                   </div>
                 </div>
-              )}
+                
+                <div style={{ marginTop: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                    Upload Plan File (PDF or CAD)
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.dwg,.dxf"
+                    onChange={handleFileChange}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                    required
+                  />
+                  {selectedFile && (
+                    <div style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
+                      <strong>Selected:</strong> {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                    </div>
+                  )}
+                  {uploadStatus && (
+                    <div style={{ marginTop: '5px', fontSize: '14px', color: uploadStatus.includes('failed') ? '#e74c3c' : '#00A896' }}>
+                      {uploadStatus}
+                    </div>
+                  )}
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div style={{ width: '100%', backgroundColor: '#f0f0f0', borderRadius: '5px', marginTop: '5px' }}>
+                      <div style={{ width: `${uploadProgress}%`, backgroundColor: '#1A2B5E', height: '5px', borderRadius: '5px' }}></div>
+                    </div>
+                  )}
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading || !selectedFile}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  backgroundColor: '#1A2B5E',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  cursor: loading || !selectedFile ? 'not-allowed' : 'pointer',
-                  marginTop: '15px',
-                  opacity: loading || !selectedFile ? 0.6 : 1
-                }}
-              >
-                {loading ? 'Submitting...' : 'Submit Plan'}
-              </button>
-            </form>
+                {newProject.council === 'other' && (
+                  <div style={{ 
+                    marginTop: '15px', 
+                    padding: '15px', 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px',
+                    border: '1px solid #ffc107'
+                  }}>
+                    <p style={{ marginTop: 0, marginBottom: '10px', color: '#856404' }}>
+                      <strong>Council not yet on VeriBuild?</strong> 
+                      Submit your plan anyway. We'll notify you when they join.
+                    </p>
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Council Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Chitungwiza Municipality"
+                        value={subCouncilOther}
+                        onChange={(e) => setSubCouncilOther(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                        required={newProject.council === 'other'}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Email for Notification</label>
+                      <input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={subCouncilNotifyEmail}
+                        onChange={(e) => setSubCouncilNotifyEmail(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+                        required={newProject.council === 'other'}
+                      />
+                      <small style={{ color: '#666' }}>We'll email you when your council joins VeriBuild.</small>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !selectedFile}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#1A2B5E',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    cursor: loading || !selectedFile ? 'not-allowed' : 'pointer',
+                    marginTop: '15px',
+                    opacity: loading || !selectedFile ? 0.6 : 1
+                  }}
+                >
+                  {loading ? 'Submitting...' : 'Submit Plan'}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
+
+        {/* ============================================
+            COUNCIL DASHBOARD (Review Queue)
+            ============================================ */}
+        {isCouncil && (
+          <div style={{ marginBottom: '30px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>
+              Review Queue
+            </h2>
+            <p style={{ color: '#666', marginBottom: '15px' }}>
+              Review submitted plans from architects.
+            </p>
+            {submissions.length === 0 ? (
+              <p style={{ color: '#666' }}>No submissions to review yet.</p>
+            ) : (
+              submissions.map((sub) => (
+                <div key={sub.id} style={{ 
+                  backgroundColor: '#fff', 
+                  padding: '15px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '8px', 
+                  marginBottom: '10px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
+                }}>
+                  <div>
+                    <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#1A2B5E' }}>{sub.project_name}</h3>
+                    <p style={{ margin: '0', color: '#666' }}>{sub.project_address}, {sub.city}</p>
+                    <p style={{ margin: '5px 0 0 0' }}>
+                      <strong>Status:</strong> 
+                      <span style={{ 
+                        color: sub.status === 'approved' ? '#00A896' : 
+                               sub.status === 'submitted' ? '#f39c12' : 
+                               sub.status === 'changes_required' ? '#e74c3c' : '#666',
+                        marginLeft: '5px'
+                      }}>
+                        {sub.status.toUpperCase()}
+                      </span>
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
+                      {new Date(sub.submitted_at).toLocaleDateString()}
+                    </p>
+                    <button 
+                      onClick={() => openReviewModal(sub)}
+                      style={{
+                        padding: '6px 15px',
+                        backgroundColor: '#1A2B5E',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        marginTop: '5px'
+                      }}
+                    >
+                      Review
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>
-              {user.role === 'architect' ? 'My Submissions' : 'All Submissions'}
-            </h2>
-            <button
-              onClick={fetchSubmissions}
-              style={{
-                padding: '8px 15px',
-                backgroundColor: '#00A896',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
-              Refresh
-            </button>
-          </div>
-          {submissions.length === 0 ? (
-            <p style={{ color: '#666' }}>No submissions yet. Submit your first plan!</p>
-          ) : (
-            submissions.map((sub) => (
-              <div key={sub.id} style={{ 
-                backgroundColor: '#fff', 
-                padding: '15px', 
-                border: '1px solid #ddd', 
-                borderRadius: '8px', 
-                marginBottom: '10px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <div>
-                  <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#1A2B5E' }}>{sub.project_name}</h3>
-                  <p style={{ margin: '0', color: '#666' }}>{sub.project_address}, {sub.city}</p>
-                  <p style={{ margin: '5px 0 0 0' }}>
-                    <strong>Status:</strong> 
-                    <span style={{ 
-                      color: sub.status === 'approved' ? '#00A896' : 
-                             sub.status === 'submitted' ? '#f39c12' : 
-                             sub.status === 'changes_required' ? '#e74c3c' : '#666',
-                      marginLeft: '5px'
-                    }}>
-                      {sub.status.toUpperCase()}
-                    </span>
-                  </p>
-                  {sub.file_url && (
-                    <a 
-                      href={sub.file_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={{ fontSize: '12px', color: '#1A2B5E' }}
+        {/* Submissions List (for Architect) */}
+        {!isCouncil && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>
+                My Submissions
+              </h2>
+              <button
+                onClick={fetchSubmissions}
+                style={{
+                  padding: '8px 15px',
+                  backgroundColor: '#00A896',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                Refresh
+              </button>
+            </div>
+            {submissions.length === 0 ? (
+              <p style={{ color: '#666' }}>No submissions yet. Submit your first plan!</p>
+            ) : (
+              submissions.map((sub) => (
+                <div key={sub.id} style={{ 
+                  backgroundColor: '#fff', 
+                  padding: '15px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '8px', 
+                  marginBottom: '10px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
+                }}>
+                  <div>
+                    <h3 style={{ fontWeight: 'bold', margin: '0 0 5px 0', color: '#1A2B5E' }}>{sub.project_name}</h3>
+                    <p style={{ margin: '0', color: '#666' }}>{sub.project_address}, {sub.city}</p>
+                    <p style={{ margin: '5px 0 0 0' }}>
+                      <strong>Status:</strong> 
+                      <span style={{ 
+                        color: sub.status === 'approved' ? '#00A896' : 
+                               sub.status === 'submitted' ? '#f39c12' : 
+                               sub.status === 'changes_required' ? '#e74c3c' : '#666',
+                        marginLeft: '5px'
+                      }}>
+                        {sub.status.toUpperCase()}
+                      </span>
+                    </p>
+                    {sub.file_url && (
+                      <a 
+                        href={sub.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '12px', color: '#1A2B5E' }}
+                      >
+                        View Plan PDF
+                      </a>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
+                      {new Date(sub.submitted_at).toLocaleDateString()}
+                    </p>
+                    <button 
+                      style={{
+                        padding: '4px 12px',
+                        backgroundColor: '#1A2B5E',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        marginTop: '5px'
+                      }}
+                      onClick={() => alert(`Plan #${sub.id}\nStatus: ${sub.status}\nSubmitted: ${new Date(sub.submitted_at).toLocaleString()}`)}
                     >
-                      View Plan PDF
-                    </a>
-                  )}
+                      View Details
+                    </button>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
-                    {new Date(sub.submitted_at).toLocaleDateString()}
-                  </p>
-                  <button 
-                    style={{
-                      padding: '4px 12px',
-                      backgroundColor: '#1A2B5E',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      marginTop: '5px'
-                    }}
-                    onClick={() => alert(`Plan #${sub.id}\nStatus: ${sub.status}\nSubmitted: ${new Date(sub.submitted_at).toLocaleString()}`)}
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
 
         <button
           onClick={() => setView('home')}
@@ -1056,12 +1309,15 @@ function App() {
   // MAIN RENDER
   // ============================================
 
-  if (view === 'home') return renderHome();
-  if (view === 'login') return renderLogin();
-  if (view === 'register') return renderRegister();
-  if (view === 'dashboard') return renderDashboard();
-
-  return <div>Page not found</div>;
+  return (
+    <div>
+      {renderReviewModal()}
+      {view === 'home' && renderHome()}
+      {view === 'login' && renderLogin()}
+      {view === 'register' && renderRegister()}
+      {view === 'dashboard' && renderDashboard()}
+    </div>
+  );
 }
 
 export default App;
