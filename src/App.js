@@ -1,13 +1,14 @@
 // ============================================
-// VERIBUILD FRONTEND - DESKTOP OPTIMIZED
+// VERIBUILD FRONTEND - PROFESSIONAL VERSION
+// With Plan Checker (Auto-Checker) Integration
 // Deploy to Vercel
 // ============================================
 
-import PlanChecker from './PlanChecker';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PlanChecker from './PlanChecker';
 
-// API URL
+// API URL (your live backend on Render)
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 
 // Supabase Configuration (for file uploads)
@@ -63,7 +64,6 @@ function App() {
   // SESSION MANAGEMENT
   // ============================================
 
-  // Ensure token is loaded from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
@@ -835,11 +835,10 @@ function App() {
   };
 
   // ============================================
-  // DASHBOARD (DESKTOP OPTIMIZED)
+  // DASHBOARD (WITH PLAN CHECKER BUTTON)
   // ============================================
 
   const renderDashboard = () => {
-    // Check if user is logged in
     if (!user) {
       return (
         <div style={{ 
@@ -886,9 +885,7 @@ function App() {
         backgroundColor: '#f8fafc',
         minHeight: '100vh'
       }}>
-        {/* ==========================================
-            HEADER
-        ========================================== */}
+        {/* HEADER */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -934,9 +931,7 @@ function App() {
           </div>
         </div>
 
-        {/* ==========================================
-            STATS CARDS
-        ========================================== */}
+        {/* STATS CARDS */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
@@ -967,9 +962,7 @@ function App() {
           )}
         </div>
 
-        {/* ==========================================
-            QUICK ACTIONS
-        ========================================== */}
+        {/* SERVICES / QUICK ACTIONS - WITH PLAN CHECKER BUTTON */}
         <div style={{ 
           display: 'flex', 
           gap: '10px', 
@@ -1025,11 +1018,24 @@ function App() {
           >
             Support
           </button>
+          {/* PLAN CHECKER BUTTON - FOR ALL USERS */}
+          <button 
+            onClick={() => setView('planchecker')}
+            style={{
+              padding: '6px 18px',
+              backgroundColor: '#1A2B5E',
+              color: 'white',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '13px'
+            }}
+          >
+            🔍 Plan Checker
+          </button>
         </div>
 
-        {/* ==========================================
-            COUNCIL QUEUE
-        ========================================== */}
+        {/* COUNCIL QUEUE */}
         {isCouncil && (
           <div style={{ 
             backgroundColor: '#fff', 
@@ -1148,9 +1154,7 @@ function App() {
           </div>
         )}
 
-        {/* ==========================================
-            ARCHITECT DASHBOARD
-        ========================================== */}
+        {/* ARCHITECT DASHBOARD */}
         {!isCouncil && (
           <>
             <div style={{ 
@@ -1435,6 +1439,7 @@ function App() {
       {view === 'login' && renderLogin()}
       {view === 'register' && renderRegister()}
       {view === 'dashboard' && renderDashboard()}
+      {view === 'planchecker' && <PlanChecker token={token} />}
     </div>
   );
 }
