@@ -3,6 +3,7 @@
 // Deploy to Vercel
 // ============================================
 
+import PlanChecker from './PlanChecker';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
