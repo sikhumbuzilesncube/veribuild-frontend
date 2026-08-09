@@ -4,6 +4,8 @@
 // Deploy to Vercel
 // ============================================
 
+import HardwareDashboard from './HardwareDashboard';
+import HardwareDirectory from './HardwareDirectory';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PlanChecker from './PlanChecker';
@@ -1018,6 +1020,20 @@ function App() {
           >
             Support
           </button>
+<button 
+  onClick={() => setView('hardware')}
+  style={{
+    padding: '6px 18px',
+    backgroundColor: '#00A896',
+    color: 'white',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    fontSize: '13px'
+  }}
+>
+  🛠️ My Shop
+</button>
           {/* PLAN CHECKER BUTTON - FOR ALL USERS */}
           <button 
             onClick={() => setView('planchecker')}
@@ -1443,5 +1459,8 @@ function App() {
     </div>
   );
 }
+
+{view === 'hardware' && <HardwareDashboard token={token} />}
+{view === 'hardware-directory' && <HardwareDirectory />}
 
 export default App;
