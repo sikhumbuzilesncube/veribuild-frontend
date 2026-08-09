@@ -14,10 +14,6 @@ function HardwareDirectory() {
   const [selectedCity, setSelectedCity] = useState('');
   const [cities, setCities] = useState([]);
 
-  // ============================================
-  // FETCH SHOPS
-  // ============================================
-
   const fetchShops = async (city = '') => {
     setLoading(true);
     try {
@@ -25,7 +21,6 @@ function HardwareDirectory() {
       const response = await axios.get(url);
       setShops(response.data.shops || []);
       
-      // Extract unique cities for filter
       const uniqueCities = [...new Set(response.data.shops.map(s => s.city).filter(Boolean))];
       setCities(uniqueCities);
     } catch (error) {
@@ -34,48 +29,31 @@ function HardwareDirectory() {
     setLoading(false);
   };
 
-  // ============================================
-  // AUTO-LOAD
-  // ============================================
-
   useEffect(() => {
     fetchShops();
   }, []);
 
-  // ============================================
-  // GET TIER BADGE
-  // ============================================
-
-  const getTierBadge = (tier) => {
-    switch (tier) {
-      case 'enterprise':
-        return { label: '🏆 Preferred Supplier', color: '#e74c3c', bg: '#fce4ec' };
-      case 'premium':
-        return { label: '⭐ Featured', color: '#f39c12', bg: '#fff3e0' };
-      case 'basic':
-        return { label: 'Listed', color: '#00A896', bg: '#e8f5e9' };
-      default:
-        return { label: 'Free', color: '#999', bg: '#f5f5f5' };
-    }
+  const getTierInfo = (tier) => {
+    const tiers = {
+      enterprise: { label: '🏆 Preferred Supplier', color: '#e74c3c', bg: '#fce4ec' },
+      premium: { label: '⭐ Featured', color: '#f39c12', bg: '#fff3e0' },
+      basic: { label: 'Listed', color: '#00A896', bg: '#e8f5e9' },
+      free: { label: 'Free', color: '#999', bg: '#f5f5f5' }
+    };
+    return tiers[tier] || tiers.free;
   };
-
-  // ============================================
-  // RENDER
-  // ============================================
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Header */}
       <div style={{ marginBottom: '30px' }}>
         <h1 style={{ fontSize: '32px', color: '#1A2B5E', margin: 0 }}>
-          🏗️ Hardware Shops Directory
+          Hardware Shops Directory
         </h1>
         <p style={{ color: '#666', margin: '5px 0 0 0' }}>
           Find building materials from trusted suppliers in your city.
         </p>
       </div>
 
-      {/* Filter */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
         <label style={{ fontWeight: 'bold' }}>Filter by City:</label>
         <select
@@ -113,15 +91,12 @@ function HardwareDirectory() {
         </button>
       </div>
 
-      {/* Loading */}
       {loading && <p>Loading shops...</p>}
 
-      {/* Shops Grid */}
       {!loading && shops.length === 0 && (
         <p style={{ color: '#666' }}>No hardware shops found in your area. Check back soon!</p>
       )}
 
-      {/* Enterprise Shops (Top Tier) */}
       {!loading && shops.filter(s => s.subscription_tier === 'enterprise').length > 0 && (
         <div style={{ marginBottom: '30px' }}>
           <h2 style={{ fontSize: '20px', color: '#1A2B5E', borderBottom: '2px solid #e74c3c', paddingBottom: '10px' }}>
@@ -129,13 +104,12 @@ function HardwareDirectory() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {shops.filter(s => s.subscription_tier === 'enterprise').map((shop) => (
-              <ShopCard key={shop.id} shop={shop} />
+              <ShopCard key={shop.id} shop={shop} getTierInfo={getTierInfo} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Premium Shops */}
       {!loading && shops.filter(s => s.subscription_tier === 'premium').length > 0 && (
         <div style={{ marginBottom: '30px' }}>
           <h2 style={{ fontSize: '20px', color: '#1A2B5E', borderBottom: '2px solid #f39c12', paddingBottom: '10px' }}>
@@ -143,13 +117,12 @@ function HardwareDirectory() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {shops.filter(s => s.subscription_tier === 'premium').map((shop) => (
-              <ShopCard key={shop.id} shop={shop} />
+              <ShopCard key={shop.id} shop={shop} getTierInfo={getTierInfo} />
             ))}
           </div>
         </div>
       )}
 
-      {/* All Other Shops */}
       {!loading && shops.filter(s => !['enterprise', 'premium'].includes(s.subscription_tier)).length > 0 && (
         <div style={{ marginBottom: '30px' }}>
           <h2 style={{ fontSize: '20px', color: '#1A2B5E', borderBottom: '2px solid #ddd', paddingBottom: '10px' }}>
@@ -157,7 +130,7 @@ function HardwareDirectory() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {shops.filter(s => !['enterprise', 'premium'].includes(s.subscription_tier)).map((shop) => (
-              <ShopCard key={shop.id} shop={shop} />
+              <ShopCard key={shop.id} shop={shop} getTierInfo={getTierInfo} />
             ))}
           </div>
         </div>
@@ -166,19 +139,8 @@ function HardwareDirectory() {
   );
 }
 
-// ============================================
-// SHOP CARD COMPONENT
-// ============================================
-
-function ShopCard({ shop }) {
-  const tierInfo = {
-    enterprise: { label: '🏆 Preferred Supplier', color: '#e74c3c', bg: '#fce4ec' },
-    premium: { label: '⭐ Featured', color: '#f39c12', bg: '#fff3e0' },
-    basic: { label: 'Listed', color: '#00A896', bg: '#e8f5e9' },
-    free: { label: 'Free', color: '#999', bg: '#f5f5f5' }
-  };
-
-  const tier = tierInfo[shop.subscription_tier] || tierInfo.free;
+function ShopCard({ shop, getTierInfo }) {
+  const tier = getTierInfo(shop.subscription_tier);
 
   return (
     <div style={{
@@ -202,7 +164,6 @@ function ShopCard({ shop }) {
           {tier.label}
         </span>
       </div>
-      
       <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
         📍 {shop.city || 'N/A'}
       </p>
@@ -219,7 +180,6 @@ function ShopCard({ shop }) {
           ⭐ {shop.rating.toFixed(1)} ({shop.total_reviews} reviews)
         </p>
       )}
-      
       <button
         onClick={() => window.open(`/shop/${shop.id}`, '_blank')}
         style={{
