@@ -667,7 +667,7 @@ function App() {
       {view === 'register' && renderRegister()}
       {view === 'dashboard' && renderArchitectDashboard()}
       {view === 'planchecker' && <PlanChecker token={token} />}
-      {view === 'hardware' && <HardwareDashboard token={token} />}
+      {view === 'hardware' && <HardwareDashboard token={token} setToken={setToken} setUser={setUser} setView={setView} />}
       {view === 'hardware-directory' && <HardwareDirectory />}
       {view === 'register-shop' && <RegisterShop setView={setView} setToken={setToken} setUser={setUser} />}
     </div>
