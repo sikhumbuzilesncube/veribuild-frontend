@@ -1,6 +1,6 @@
 // ============================================
 // VERIBUILD - HARDWARE SHOP DASHBOARD
-// Complete working version with proper error handling
+// Complete working version with logout
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -8,10 +8,11 @@ import axios from 'axios';
 
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 
-function HardwareDashboard({ token }) {
+function HardwareDashboard({ token, setToken, setUser, setView }) {
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProduct, setNewProduct] = useState({
     product_name: '',
@@ -22,11 +23,23 @@ function HardwareDashboard({ token }) {
   });
 
   // ============================================
+  // LOGOUT
+  // ============================================
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setToken('');
+    setUser(null);
+    setView('home');
+  };
+
+  // ============================================
   // FETCH SHOP AND PRODUCTS
   // ============================================
 
   const fetchShop = async () => {
     setLoading(true);
+    setError('');
     try {
       const response = await axios.get(`${API_URL}/hardware/shop`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -40,23 +53,11 @@ function HardwareDashboard({ token }) {
         });
         setProducts(productsResponse.data.products || []);
       } else {
-        setShop({
-          shop_name: 'Ncube Hardware',
-          city: 'Bulawayo',
-          is_verified: false,
-          subscription_tier: 'free'
-        });
-        setProducts([]);
+        setError('Shop not found. Please contact support.');
       }
     } catch (error) {
       console.error('Error fetching shop:', error);
-      setShop({
-        shop_name: 'Ncube Hardware',
-        city: 'Bulawayo',
-        is_verified: false,
-        subscription_tier: 'free'
-      });
-      setProducts([]);
+      setError('Failed to load shop data. Please try again.');
     }
     setLoading(false);
   };
@@ -68,15 +69,31 @@ function HardwareDashboard({ token }) {
   const addProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
+    // Validate fields
+    if (!newProduct.product_name || !newProduct.category || !newProduct.unit || !newProduct.price) {
+      setError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Validate fields
-      if (!newProduct.product_name || !newProduct.category || !newProduct.unit || !newProduct.price) {
-        alert('Please fill in all required fields.');
+      // First, get the shop to ensure we have the correct shop_id
+      const shopResponse = await axios.get(`${API_URL}/hardware/shop`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!shopResponse.data.shop) {
+        setError('Shop not found. Please contact support.');
         setLoading(false);
         return;
       }
 
+      const shopId = shopResponse.data.shop.id;
+
       const payload = {
+        shop_id: shopId,
         product_name: newProduct.product_name,
         category: newProduct.category,
         unit: newProduct.unit,
@@ -102,7 +119,7 @@ function HardwareDashboard({ token }) {
       console.error('Error response:', error.response?.data);
       
       const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
-      alert('Failed to add product: ' + errorMsg);
+      setError('Failed to add product: ' + errorMsg);
     }
     setLoading(false);
   };
@@ -135,7 +152,7 @@ function HardwareDashboard({ token }) {
   }, [token]);
 
   // ============================================
-  // RENDER - LOADING
+  // RENDER
   // ============================================
 
   if (loading) {
@@ -146,14 +163,10 @@ function HardwareDashboard({ token }) {
     );
   }
 
-  // ============================================
-  // RENDER - SHOP DASHBOARD
-  // ============================================
-
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      {/* Header with Logout */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
         <div>
           <h1 style={{ margin: 0, color: '#1A2B5E' }}>{shop?.shop_name || 'Ncube Hardware'}</h1>
           <p style={{ margin: '5px 0 0 0', color: '#666' }}>
@@ -179,8 +192,38 @@ function HardwareDashboard({ token }) {
           >
             Upgrade to Basic ($10/mo)
           </button>
+          <br />
+          <button
+            onClick={handleLogout}
+            style={{
+              marginTop: '8px',
+              padding: '6px 16px',
+              backgroundColor: '#e74c3c',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div style={{
+          backgroundColor: '#fce4ec',
+          padding: '12px',
+          borderRadius: '8px',
+          color: '#e74c3c',
+          marginBottom: '15px',
+          border: '1px solid #e74c3c'
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '30px' }}>
@@ -225,7 +268,7 @@ function HardwareDashboard({ token }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <input
               type="text"
-              placeholder="Product Name"
+              placeholder="Product Name *"
               value={newProduct.product_name}
               onChange={(e) => setNewProduct({ ...newProduct, product_name: e.target.value })}
               style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
@@ -237,7 +280,7 @@ function HardwareDashboard({ token }) {
               style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
               required
             >
-              <option value="">Select Category</option>
+              <option value="">Select Category *</option>
               <option value="Building Materials">Building Materials</option>
               <option value="Steel & Rebar">Steel & Rebar</option>
               <option value="Finishing">Finishing</option>
@@ -251,7 +294,7 @@ function HardwareDashboard({ token }) {
             </select>
             <input
               type="text"
-              placeholder="Unit (e.g., bag, kg, m²)"
+              placeholder="Unit (e.g., bag, kg, m²) *"
               value={newProduct.unit}
               onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })}
               style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
@@ -259,7 +302,7 @@ function HardwareDashboard({ token }) {
             />
             <input
               type="number"
-              placeholder="Price (USD)"
+              placeholder="Price (USD) *"
               value={newProduct.price}
               onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
               style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
