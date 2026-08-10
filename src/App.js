@@ -533,6 +533,8 @@ function App() {
           <button onClick={() => setView('planchecker')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>Plan Checker</button>
           <button onClick={() => setView('hardware')} style={{ padding: '6px 18px', backgroundColor: '#00A896', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>My Shop</button>
           <button onClick={() => setView('hardware-directory')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>Shop Directory</button>
+          <button onClick={() => setView('trades')} style={{ padding: '6px 18px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>👷 My Trade Profile</button>
+          <button onClick={() => setView('trades-directory')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>🔧 Find Trades</button>
         </div>
 
         {isCouncil && (
@@ -672,6 +674,8 @@ function App() {
       {view === 'hardware' && <HardwareDashboard token={token} setToken={setToken} setUser={setUser} setView={setView} />}
       {view === 'hardware-directory' && <HardwareDirectory />}
       {view === 'register-shop' && <RegisterShop setView={setView} setToken={setToken} setUser={setUser} />}
+      {view === 'trades' && <TradesDashboard token={token} setToken={setToken} setUser={setUser} setView={setView} />}
+      {view === 'trades-directory' && <TradesDirectory />}
     </div>
   );
 }
