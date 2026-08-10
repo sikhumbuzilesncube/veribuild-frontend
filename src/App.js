@@ -1,6 +1,6 @@
 // ============================================
 // VERIBUILD FRONTEND - COMPLETE
-// With Hardware Shop Registration & Role-Based Routing
+// With Architect, Hardware Shop, Skilled Trader, Council Officer Registration
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -9,6 +9,7 @@ import PlanChecker from './PlanChecker';
 import HardwareDashboard from './HardwareDashboard';
 import HardwareDirectory from './HardwareDirectory';
 import RegisterShop from './RegisterShop';
+import RegisterTrade from './RegisterTrade';
 import TradesDashboard from './TradesDashboard';
 import TradesDirectory from './TradesDirectory';
 
@@ -91,6 +92,8 @@ function App() {
       // Redirect based on role
       if (user.role === 'hardware_shop') {
         setView('hardware');
+      } else if (user.role === 'tradesperson') {
+        setView('trades');
       } else {
         setView('dashboard');
       }
@@ -122,6 +125,8 @@ function App() {
       // Redirect based on role
       if (user.role === 'hardware_shop') {
         setView('hardware');
+      } else if (user.role === 'tradesperson') {
+        setView('trades');
       } else {
         setView('dashboard');
       }
@@ -336,7 +341,7 @@ function App() {
   // RENDER FUNCTIONS
   // ============================================
 
-  // ---------- HOME PAGE ----------
+  // ---------- HOME PAGE (With 4 Registration Options) ----------
   const renderHome = () => (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
       <h1 style={{ fontSize: '42px', color: '#1A2B5E' }}>VeriBuild</h1>
@@ -346,17 +351,32 @@ function App() {
         <button onClick={() => setView('login')} style={{ padding: '10px 35px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Login</button>
         <button onClick={() => setView('register')} style={{ padding: '10px 35px', backgroundColor: '#00A896', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Register as Architect</button>
         <button onClick={() => setView('register-shop')} style={{ padding: '10px 35px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Register as Hardware Shop</button>
+        <button onClick={() => setView('register-trade')} style={{ padding: '10px 35px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Register as Skilled Trader</button>
+        <button onClick={() => alert('Council Officer accounts are created by the platform administrator. Please contact support to request access.')} style={{ padding: '10px 35px', backgroundColor: '#8e44ad', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Register as Council Officer</button>
       </div>
       
       <div style={{ backgroundColor: '#f0f4f8', padding: '40px', borderRadius: '12px', marginBottom: '20px' }}>
         <h2>Streamline Your Building Approvals</h2>
-        <p>VeriBuild connects architects, councils, and hardware shops.</p>
+        <p>VeriBuild connects architects, councils, hardware shops, and skilled tradespeople.</p>
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Digital Submissions</h3><p>Architects submit building plans digitally.</p></div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Rapid Approvals</h3><p>Councils review and approve in record time.</p></div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Hardware Marketplace</h3><p>Shops list products and get BOQ leads.</p></div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3>Digital Submissions</h3>
+          <p>Architects submit building plans digitally.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3>Rapid Approvals</h3>
+          <p>Councils review and approve in record time.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3>Hardware Marketplace</h3>
+          <p>Shops list products and get BOQ leads.</p>
+        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <h3>Trades Directory</h3>
+          <p>Find skilled tradespeople for your project.</p>
+        </div>
       </div>
       <p style={{ color: '#999' }}>© 2026 VeriBuild. Built by Gatekeeper AI.</p>
     </div>
@@ -533,8 +553,8 @@ function App() {
           <button onClick={() => setView('planchecker')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>Plan Checker</button>
           <button onClick={() => setView('hardware')} style={{ padding: '6px 18px', backgroundColor: '#00A896', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>My Shop</button>
           <button onClick={() => setView('hardware-directory')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>Shop Directory</button>
-          <button onClick={() => setView('trades')} style={{ padding: '6px 18px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>👷 My Trade Profile</button>
-          <button onClick={() => setView('trades-directory')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>🔧 Find Trades</button>
+          <button onClick={() => setView('trades')} style={{ padding: '6px 18px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>My Trade Profile</button>
+          <button onClick={() => setView('trades-directory')} style={{ padding: '6px 18px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '13px' }}>Find Trades</button>
         </div>
 
         {isCouncil && (
@@ -674,6 +694,7 @@ function App() {
       {view === 'hardware' && <HardwareDashboard token={token} setToken={setToken} setUser={setUser} setView={setView} />}
       {view === 'hardware-directory' && <HardwareDirectory />}
       {view === 'register-shop' && <RegisterShop setView={setView} setToken={setToken} setUser={setUser} />}
+      {view === 'register-trade' && <RegisterTrade setView={setView} setToken={setToken} setUser={setUser} />}
       {view === 'trades' && <TradesDashboard token={token} setToken={setToken} setUser={setUser} setView={setView} />}
       {view === 'trades-directory' && <TradesDirectory />}
     </div>
