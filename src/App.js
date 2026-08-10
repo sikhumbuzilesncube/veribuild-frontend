@@ -1,6 +1,6 @@
 // ============================================
 // VERIBUILD FRONTEND - COMPLETE
-// With Hardware Shop Registration & Role-Based Dashboard
+// With Hardware Shop Registration & Role-Based Routing
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -86,7 +86,12 @@ function App() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      setView('dashboard');
+      // Redirect based on role
+      if (user.role === 'hardware_shop') {
+        setView('hardware');
+      } else {
+        setView('dashboard');
+      }
       alert('Login successful!');
     } catch (error) {
       alert('Login failed: ' + (error.response?.data?.detail || 'Unknown error'));
@@ -112,7 +117,12 @@ function App() {
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      setView('dashboard');
+      // Redirect based on role
+      if (user.role === 'hardware_shop') {
+        setView('hardware');
+      } else {
+        setView('dashboard');
+      }
       
       if (regCouncil === 'other' && regCouncilNotifyEmail) {
         console.log('Council request saved:', regCouncilOther, regCouncilNotifyEmail);
@@ -309,8 +319,13 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      setView('dashboard');
-      fetchSubmissions();
+      // If we have a token but no user, fetch the user data
+      if (!user) {
+        // The user data should have been set during login/register
+        // If not, we can try to fetch it
+        setView('dashboard');
+        fetchSubmissions();
+      }
     }
     fetchLeaderboard();
   }, [token]);
@@ -345,7 +360,7 @@ function App() {
     </div>
   );
 
-  // ---------- LOGIN (WITH FORGOT PASSWORD) ----------
+  // ---------- LOGIN ----------
   const renderLogin = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
       <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#1A2B5E' }}>Login to VeriBuild</h2>
@@ -459,41 +474,21 @@ function App() {
     );
   };
 
-  // ---------- DASHBOARD (ROLE-BASED) ----------
-  const renderDashboard = () => {
-    if (!user) {
-      return (
-        <div style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '600px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-          <h2 style={{ color: '#1A2B5E' }}>Please log in to access your dashboard</h2>
-          <p style={{ color: '#666' }}>Your session may have expired or you are not logged in.</p>
-          <button onClick={() => setView('login')} style={{ marginTop: '20px', padding: '12px 40px', backgroundColor: '#1A2B5E', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>Go to Login</button>
-        </div>
-      );
-    }
-
-    // ============================================
-    // HARDWARE SHOP DASHBOARD
-    // ============================================
-    if (user.role === 'hardware_shop') {
-      return <HardwareDashboard token={token} />;
-    }
-
-    // ============================================
-    // COUNCIL OFFICER / ARCHITECT DASHBOARD
-    // ============================================
-    const isCouncil = user.role === 'council_officer';
+  // ---------- ARCHITECT DASHBOARD ----------
+  const renderArchitectDashboard = () => {
     const total = submissions.length;
     const approved = submissions.filter(s => s.status === 'approved').length;
     const pending = submissions.filter(s => s.status === 'submitted' || s.status === 'under_review').length;
     const changes = submissions.filter(s => s.status === 'changes_required').length;
     const rejected = submissions.filter(s => s.status === 'rejected').length;
+    const isCouncil = user?.role === 'council_officer';
 
     return (
       <div style={{ padding: '20px 30px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Arial, sans-serif', backgroundColor: '#f8fafc', minHeight: '100vh' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', backgroundColor: '#fff', padding: '15px 25px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '24px', color: '#1A2B5E' }}>Welcome back, {user.full_name}</h1>
-            <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '14px' }}>{isCouncil ? 'Council Officer' : 'Architect'} • {user.city || 'Council not set'}</p>
+            <h1 style={{ margin: 0, fontSize: '24px', color: '#1A2B5E' }}>Welcome back, {user?.full_name}</h1>
+            <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '14px' }}>{isCouncil ? 'Council Officer' : 'Architect'} • {user?.city || 'Council not set'}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{ backgroundColor: '#f1f5f9', padding: '6px 15px', borderRadius: '20px', fontSize: '13px', color: '#1A2B5E' }}>Approved: {approved}</div>
@@ -670,7 +665,7 @@ function App() {
       {view === 'home' && renderHome()}
       {view === 'login' && renderLogin()}
       {view === 'register' && renderRegister()}
-      {view === 'dashboard' && renderDashboard()}
+      {view === 'dashboard' && renderArchitectDashboard()}
       {view === 'planchecker' && <PlanChecker token={token} />}
       {view === 'hardware' && <HardwareDashboard token={token} />}
       {view === 'hardware-directory' && <HardwareDirectory />}
