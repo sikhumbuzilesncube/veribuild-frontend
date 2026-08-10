@@ -67,21 +67,24 @@ function HardwareDashboard({ token }) {
   // ============================================
 
   const addProduct = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post(`${API_URL}/hardware/products`, newProduct, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('Product added successfully!');
-      setNewProduct({ product_name: '', category: '', unit: '', price: '', stock_quantity: '' });
-      setShowAddProduct(false);
-      fetchShop();
-    } catch (error) {
-      alert('Failed to add product: ' + (error.response?.data?.detail || 'Unknown error'));
-    }
-    setLoading(false);
-  };
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const response = await axios.post(`${API_URL}/hardware/products`, newProduct, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    alert('Product added successfully!');
+    setNewProduct({ product_name: '', category: '', unit: '', price: '', stock_quantity: '' });
+    setShowAddProduct(false);
+    fetchShop();
+  } catch (error) {
+    // Show the actual error message from the backend
+    const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
+    alert('Failed to add product: ' + errorMsg);
+    console.error('Full error:', error.response?.data);
+  }
+  setLoading(false);
+};
 
   // ============================================
   // DELETE PRODUCT
