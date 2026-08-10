@@ -1,5 +1,6 @@
 // ============================================
 // VERIBUILD - HARDWARE SHOP DASHBOARD
+// Complete working version with proper error handling
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -39,7 +40,6 @@ function HardwareDashboard({ token }) {
         });
         setProducts(productsResponse.data.products || []);
       } else {
-        // Fallback: use hardcoded shop data
         setShop({
           shop_name: 'Ncube Hardware',
           city: 'Bulawayo',
@@ -50,7 +50,6 @@ function HardwareDashboard({ token }) {
       }
     } catch (error) {
       console.error('Error fetching shop:', error);
-      // Fallback: use hardcoded shop data
       setShop({
         shop_name: 'Ncube Hardware',
         city: 'Bulawayo',
@@ -67,24 +66,46 @@ function HardwareDashboard({ token }) {
   // ============================================
 
   const addProduct = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  try {
-    const response = await axios.post(`${API_URL}/hardware/products`, newProduct, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    alert('Product added successfully!');
-    setNewProduct({ product_name: '', category: '', unit: '', price: '', stock_quantity: '' });
-    setShowAddProduct(false);
-    fetchShop();
-  } catch (error) {
-    // Show the actual error message from the backend
-    const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
-    alert('Failed to add product: ' + errorMsg);
-    console.error('Full error:', error.response?.data);
-  }
-  setLoading(false);
-};
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Validate fields
+      if (!newProduct.product_name || !newProduct.category || !newProduct.unit || !newProduct.price) {
+        alert('Please fill in all required fields.');
+        setLoading(false);
+        return;
+      }
+
+      const payload = {
+        product_name: newProduct.product_name,
+        category: newProduct.category,
+        unit: newProduct.unit,
+        price: parseFloat(newProduct.price),
+        stock_quantity: parseInt(newProduct.stock_quantity) || 0
+      };
+
+      console.log('Sending payload:', payload);
+
+      const response = await axios.post(`${API_URL}/hardware/products`, payload, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      alert('Product added successfully!');
+      setNewProduct({ product_name: '', category: '', unit: '', price: '', stock_quantity: '' });
+      setShowAddProduct(false);
+      fetchShop();
+    } catch (error) {
+      console.error('Full error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
+      alert('Failed to add product: ' + errorMsg);
+    }
+    setLoading(false);
+  };
 
   // ============================================
   // DELETE PRODUCT
@@ -126,7 +147,7 @@ function HardwareDashboard({ token }) {
   }
 
   // ============================================
-  // RENDER - SHOP DASHBOARD (Always shown)
+  // RENDER - SHOP DASHBOARD
   // ============================================
 
   return (
