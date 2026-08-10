@@ -1,6 +1,6 @@
 // ============================================
 // VERIBUILD FRONTEND - COMPLETE
-// With Hardware Shop Registration
+// With Hardware Shop Registration & Role-Based Dashboard
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -319,7 +319,7 @@ function App() {
   // RENDER FUNCTIONS
   // ============================================
 
-  // ---------- HOME PAGE (With 3 Registration Options) ----------
+  // ---------- HOME PAGE ----------
   const renderHome = () => (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
       <h1 style={{ fontSize: '42px', color: '#1A2B5E' }}>VeriBuild</h1>
@@ -337,24 +337,15 @@ function App() {
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3>Digital Submissions</h3>
-          <p>Architects submit building plans digitally.</p>
-        </div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3>Rapid Approvals</h3>
-          <p>Councils review and approve in record time.</p>
-        </div>
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <h3>Hardware Marketplace</h3>
-          <p>Shops list products and get BOQ leads.</p>
-        </div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Digital Submissions</h3><p>Architects submit building plans digitally.</p></div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Rapid Approvals</h3><p>Councils review and approve in record time.</p></div>
+        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}><h3>Hardware Marketplace</h3><p>Shops list products and get BOQ leads.</p></div>
       </div>
       <p style={{ color: '#999' }}>© 2026 VeriBuild. Built by Gatekeeper AI.</p>
     </div>
   );
 
-  // ---------- LOGIN ----------
+  // ---------- LOGIN (WITH FORGOT PASSWORD) ----------
   const renderLogin = () => (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
       <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#1A2B5E' }}>Login to VeriBuild</h2>
@@ -371,8 +362,11 @@ function App() {
           {loading ? 'Loading...' : 'Login'}
         </button>
       </form>
-      <p style={{ marginTop: '15px' }}>Don't have an account? <span onClick={() => setView('register')} style={{ color: '#00A896', cursor: 'pointer', textDecoration: 'underline' }}>Register here</span></p>
-      <button onClick={() => setView('home')} style={{ marginTop: '15px', padding: '10px', backgroundColor: '#eee', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>← Back to Home</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+        <span onClick={() => setView('register')} style={{ color: '#00A896', cursor: 'pointer', textDecoration: 'underline' }}>Register</span>
+        <span onClick={() => alert('Password reset feature coming soon!')} style={{ color: '#1A2B5E', cursor: 'pointer', textDecoration: 'underline' }}>Forgot Password?</span>
+      </div>
+      <button onClick={() => setView('home')} style={{ marginTop: '15px', padding: '10px', backgroundColor: '#eee', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%' }}>← Back to Home</button>
     </div>
   );
 
@@ -381,18 +375,9 @@ function App() {
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
       <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px', color: '#1A2B5E' }}>Register as Architect</h2>
       <form onSubmit={handleRegister}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Full Name</label>
-          <input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-          <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Password</label>
-          <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required />
-        </div>
+        <div style={{ marginBottom: '15px' }}><label style={{ display: 'block', marginBottom: '5px' }}>Full Name</label><input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required /></div>
+        <div style={{ marginBottom: '15px' }}><label style={{ display: 'block', marginBottom: '5px' }}>Email</label><input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required /></div>
+        <div style={{ marginBottom: '15px' }}><label style={{ display: 'block', marginBottom: '5px' }}>Password</label><input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }} required /></div>
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px' }}>Role</label>
           <select value={regRole} onChange={(e) => { setRegRole(e.target.value); if (e.target.value === 'council_officer') { setRegRegNumber(''); } }} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
@@ -474,7 +459,7 @@ function App() {
     );
   };
 
-  // ---------- DASHBOARD ----------
+  // ---------- DASHBOARD (ROLE-BASED) ----------
   const renderDashboard = () => {
     if (!user) {
       return (
@@ -486,6 +471,16 @@ function App() {
       );
     }
 
+    // ============================================
+    // HARDWARE SHOP DASHBOARD
+    // ============================================
+    if (user.role === 'hardware_shop') {
+      return <HardwareDashboard token={token} />;
+    }
+
+    // ============================================
+    // COUNCIL OFFICER / ARCHITECT DASHBOARD
+    // ============================================
     const isCouncil = user.role === 'council_officer';
     const total = submissions.length;
     const approved = submissions.filter(s => s.status === 'approved').length;
@@ -633,6 +628,7 @@ function App() {
                 </button>
               </form>
             </div>
+
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1A2B5E' }}>My Submissions</h2>
