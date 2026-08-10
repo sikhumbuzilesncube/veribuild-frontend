@@ -9,6 +9,8 @@ import PlanChecker from './PlanChecker';
 import HardwareDashboard from './HardwareDashboard';
 import HardwareDirectory from './HardwareDirectory';
 import RegisterShop from './RegisterShop';
+import TradesDashboard from './TradesDashboard';
+import TradesDirectory from './TradesDirectory';
 
 const API_URL = 'https://veribuild-backend.onrender.com/api';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
