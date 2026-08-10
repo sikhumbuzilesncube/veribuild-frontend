@@ -1,5 +1,6 @@
 // ============================================
 // VERIBUILD - REGISTER HARDWARE SHOP
+// With Confirm Password
 // ============================================
 
 import React, { useState } from 'react';
@@ -16,6 +17,7 @@ function RegisterShop({ setView, setToken, setUser }) {
     email: '',
     business_reg_number: '',
     password: '',
+    confirm_password: '',
     full_name: '',
   });
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,20 @@ function RegisterShop({ setView, setToken, setUser }) {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Check if passwords match
+    if (formData.password !== formData.confirm_password) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    // Check password length
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Step 1: Register the user
@@ -155,17 +171,27 @@ function RegisterShop({ setView, setToken, setUser }) {
             required
           />
         </div>
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '10px' }}>
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Password (min 6 characters)"
             value={formData.password}
             onChange={handleChange}
             style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
             required
           />
-          <small style={{ color: '#666' }}>At least 6 characters.</small>
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <input
+            type="password"
+            name="confirm_password"
+            placeholder="Confirm Password"
+            value={formData.confirm_password}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}
+            required
+          />
         </div>
         
         <button
